@@ -36,21 +36,24 @@ namespace Ruler
 class SCENERENDER_EXPORT SixBox
 {
 public:
-	SixBox();
-	~SixBox();
+    SixBox();
+    ~SixBox();
 
-	// 初始化用于生成六面体到全景的映射关系，计算一次就可以了,其中R_offset用于指出中心偏移
-	bool init(int boxwidth, int panowidth, int panoheight, const cv::Mat& R_offset = cv::Mat::eye(3,3,CV_64F));
+    // 初始化用于生成六面体到全景的映射关系，计算一次就可以了,其中R_offset用于指出中心偏移
+    bool init(int boxwidth, int panowidth, int panoheight, const cv::Mat& R_offset = cv::Mat::eye(3,3,CV_64F));
 
-	// 将六面体转换成全景
-	cv::Mat convertSixBoxToPanorama(const cv::Mat& boximage);
+    // 将六面体转换成全景
+    cv::Mat convertSixBoxToPanorama(const cv::Mat& boximage);
+    cv::Mat convertSixBoxLabelToPanorama(const cv::Mat& boximage);
 
-	// 将全景转换成六面体,依次为后左前右上下
-	cv::Mat convertPanoramaToSixBox(const cv::Mat& panoimage);
+    // 将全景转换成六面体,依次为后左前右上下
+    cv::Mat convertPanoramaToSixBox(const cv::Mat& panoimage);
 
 private:
-	cv::Mat map_sixbox_to_pano_x_, map_sixbox_to_pano_y_; // 六面体到全景的映射
-	cv::Mat map_pano_to_sixbox_x_, map_pano_to_sixbox_y_; // 全景到六面体的映射
+    cv::Mat map_sixbox_to_pano_x_, map_sixbox_to_pano_y_; // 六面体到全景的映射
+    cv::Mat map_pano_to_sixbox_x_, map_pano_to_sixbox_y_; // 全景到六面体的映射
+
+    int boxwidth_, panowidth_, panoheight_;
 };
 
 } // namspace Ruler

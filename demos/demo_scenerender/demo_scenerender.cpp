@@ -3,12 +3,6 @@
 
 void main()
 {
-    //Ruler::TriMesh mesh;
-    //mesh.loadOBJ("D:\\scenerender\\datas\\全景测试\\12\\012.obj", true);
-    //mesh.loadTexture("D:\\scenerender\\datas\\全景测试\\12\\12.jpg");
-    //mesh.saveOBJ("d:\\2.obj");
-    //return;
-
     float scale = 1000;
 
     Ruler::CameraD cameraparam;
@@ -20,10 +14,11 @@ void main()
     rectparam.SetPositionAfterRotation(-6.958500385284424*scale, 1.2746762037277222*scale, 4.447582721710205*scale);
 
     Ruler::SceneRender sr(cameraparam, 2048, 6000, 3000);
-    sr.render(Ruler::RenderPanorama("D:\\scenerender\\datas\\全景测试\\全景图.jpg"));
-    sr.render(Ruler::RenderTrimesh("D:\\scenerender\\datas\\全景测试\\12\\012.obj", "D:\\scenerender\\datas\\全景测试\\12\\12.jpg", true));
-    sr.render(Ruler::RenderRectangle("D:\\scenerender\\datas\\全景测试\\拖放进去的图.png", rectparam, 8.18169057590558*scale, 4.686696682403695*scale, true));
+    sr.render(Ruler::RenderPanorama("..\\..\\..\\datas\\scene01\\全景图.jpg"));
+    sr.render(Ruler::RenderTrimesh("..\\..\\..\\datas\\scene01\\obj\\012.obj", "..\\..\\..\\datas\\scene01\\obj\\12.jpg", true));
+    sr.render(Ruler::RenderRectangle("..\\..\\..\\datas\\scene01\\拖放进去的图.png", rectparam, 8.18169057590558*scale, 4.686696682403695*scale, true));
 
     cv::imwrite("d:\\pano.bmp", sr.getPanoSimulate());
     cv::imwrite("d:\\depth.png", sr.getPanoDepth());
+    //cv::imwrite("d:\\record.png", sr.getPanoRecord());
 }

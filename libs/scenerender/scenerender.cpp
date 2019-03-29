@@ -128,12 +128,12 @@ cv::Mat Ruler::SceneRender::getPanoDepth()
 
 cv::Mat Ruler::SceneRender::getPanoRecord()
 {
-    cv::Mat sixrecord(boxwidth_, 6 * boxwidth_, CV_32S);
+    cv::Mat sixrecord(boxwidth_, 6 * boxwidth_, CV_16U);
     for (int i = 0; i < 6; i++)
     {
-        result_array_[i].record.convertTo(sixrecord.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_32S);
+        result_array_[i].record.convertTo(sixrecord.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_16U);
     }
-    return std::move(sixbox_.convertSixBoxToPanorama(sixrecord));
+    return std::move(sixbox_.convertSixBoxLabelToPanorama(sixrecord));
 }
 
 cv::Mat Ruler::SceneRender::getPanoSimulate()

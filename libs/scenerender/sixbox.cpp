@@ -39,6 +39,10 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
 {
     assert(panoheight * 2 == panowidth && panoheight > 0);
 
+    boxwidth_ = boxwidth;
+    panowidth_ = panowidth;
+    panoheight_ = panoheight;
+
     // 计算六面体到全景的映射
     map_sixbox_to_pano_x_.create(boxwidth, 6 * boxwidth, CV_32F);
     map_sixbox_to_pano_y_.create(boxwidth, 6 * boxwidth, CV_32F);
@@ -135,14 +139,49 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
 // 将六面体转换成全景
 cv::Mat Ruler::SixBox::convertSixBoxToPanorama(const cv::Mat& boximage)
 {
+    assert(boximage.cols == 6 * boxwidth_ && boximage.rows == boxwidth_);
+
     cv::Mat panoimage;
     cv::remap(boximage, panoimage, map_pano_to_sixbox_x_, map_pano_to_sixbox_y_, CV_INTER_LINEAR);
+    return std::move(panoimage);
+}
+
+cv::Mat Ruler::SixBox::convertSixBoxLabelToPanorama(const cv::Mat& boximage)
+{
+    assert(boximage.cols == 6 * boxwidth_ && boximage.rows == boxwidth_);
+
+    int sixboxlength = boxwidth_ * 6;
+    cv::Mat panoimage = -cv::Mat::ones(map_pano_to_sixbox_x_.size(), CV_32S);
+    for (int j = 0; j < map_pano_to_sixbox_x_.rows; j++)
+    {
+        for (int i = 0; i < map_pano_to_sixbox_x_.cols; i++)
+        {
+            float x = map_pano_to_sixbox_x_.at<float>(j, i);
+            float y = map_pano_to_sixbox_y_.at<float>(j, i);
+
+            int u = int(x + 0.5);
+            int v = int(y + 0.5);
+            if (u >= 0 && u < sixboxlength && v >= 0 && v < boxwidth_)
+            {
+                panoimage.at<long>(j, i) = boximage.at<long>(v, u);
+            }
+            else
+            {
+                int u = int(x);
+                int v = int(y);
+                panoimage.at<long>(j, i) = boximage.at<long>(v, u);
+            }
+        }
+    }
+    //cv::remap(boximage, panoimage, map_pano_to_sixbox_x_, map_pano_to_sixbox_y_, CV_INTER_LINEAR);
     return std::move(panoimage);
 }
 
 // 将全景转换成六面体
 cv::Mat Ruler::SixBox::convertPanoramaToSixBox(const cv::Mat& panoimage)
 {
+    assert(panoimage.cols == panowidth_ && panoimage.rows == panoheight_);
+
     cv::Mat boximage;
     cv::remap(panoimage, boximage, map_sixbox_to_pano_x_, map_sixbox_to_pano_y_, CV_INTER_LINEAR);
     return std::move(boximage);
