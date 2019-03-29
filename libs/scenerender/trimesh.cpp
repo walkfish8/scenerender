@@ -1,0 +1,197 @@
+/***********************************************************************
+* Software License Agreement (Ruler License)
+*
+* Copyright 2008-2011  Li YunQiang (liyunqiang@91ruler.com). All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions
+* are met:
+*
+* 1. Redistributions of source code must retain the above copyright
+*    notice, this list of conditions and the following disclaimer.
+* 2. Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in the
+*    documentation and/or other materials provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+* IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+* OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+* IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+* NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+* THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+* THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*************************************************************************/
+#include "trimesh.h"
+
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
+static const unsigned OBJ_INDEX_OFFSET = 1;
+static const unsigned NO_ID = std::numeric_limits<unsigned>::max();
+
+Ruler::TriMesh::TriMesh() {}
+Ruler::TriMesh::~TriMesh() {}
+
+void Ruler::TriMesh::clear()
+{
+    vertices.clear();
+    normals.clear();
+    texcoords.clear();
+    faces.clear();
+    vertex_faces_.clear();
+}
+
+void Ruler::TriMesh::listIncidenteFaces()
+{
+    vertex_faces_.clear();
+    vertex_faces_.resize(vertices.size());
+    for (int i = 0; i < faces.size(); i++)
+        for (int j = 0; j < 3; j++)
+            vertex_faces_[faces[i].vertices[j]].push_back(i);
+}
+
+void Ruler::TriMesh::getAdjacencyFaces(Index face_index,
+                                       std::vector<Index>& adjacency_faces)
+{
+    if (vertex_faces_.empty()) listIncidenteFaces();
+
+    adjacency_faces.clear();
+    const auto& faces0 = vertex_faces_[faces[face_index].vertices[0]];
+    const auto& faces1 = vertex_faces_[faces[face_index].vertices[1]];
+    const auto& faces2 = vertex_faces_[faces[face_index].vertices[2]];
+
+    adjacency_faces.assign(faces0.begin(), faces0.end());
+    adjacency_faces.insert(adjacency_faces.end(), faces1.begin(), faces1.end());
+    adjacency_faces.insert(adjacency_faces.end(), faces2.begin(), faces2.end());
+    std::sort(adjacency_faces.begin(), adjacency_faces.end());
+    adjacency_faces.erase(unique(adjacency_faces.begin(), adjacency_faces.end()), adjacency_faces.end());
+}
+
+bool Ruler::TriMesh::loadOBJ(const std::string& obj_path, bool is_rotate_axis)
+{
+    this->clear();
+    std::ifstream fs(obj_path.c_str(), std::ios::in);
+    std::istringstream in;
+    std::string line, keyword;
+
+    std::string material_name;
+    float x(0), y(0), z(0);
+    while (std::getline(fs, line, '\n'))
+    {
+        if (line.empty() || line[0] == '#')
+            continue;
+
+        in.clear();
+        in.str(line);
+        in >> keyword;
+
+        if (keyword == "v")
+        {
+            in >> x >> y >> z;
+            vertices.push_back(is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z));
+        }
+        else if (keyword == "vt")
+        {
+            in >> x >> y;
+            texcoords.push_back(cv::Point2f(x,y));
+        }
+        else if (keyword == "vn")
+        {
+            in >> x >> y >> z;
+            normals.push_back(is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z));
+        }
+        else if (keyword == "f")
+        {
+            Face f;
+            memset(&f, 0xFF, sizeof(Face));
+            for (auto k = 0; k < 3; ++k)
+            {
+                in >> keyword;
+                switch (sscanf_s(keyword.c_str(), "%u/%u/%u", f.vertices + k, f.texcoords + k, f.normals + k))
+                {
+                case 1:
+                    f.vertices[k] -= OBJ_INDEX_OFFSET;
+                    break;
+                case 2:
+                    f.vertices[k] -= OBJ_INDEX_OFFSET;
+                    f.texcoords[k] -= f.texcoords[k] != std::numeric_limits<Index>::max() ? OBJ_INDEX_OFFSET : 0;
+                    f.normals[k] -= f.normals[k] != std::numeric_limits<Index>::max() ? OBJ_INDEX_OFFSET : 0;
+                    break;
+                case 3:
+                    f.vertices[k] -= OBJ_INDEX_OFFSET;
+                    f.texcoords[k] -= OBJ_INDEX_OFFSET;
+                    f.normals[k] -= OBJ_INDEX_OFFSET;
+                    break;
+                default:
+                    break;
+                }
+            }
+            faces.push_back(f);
+        }
+        else if (keyword == "mtllib")
+        {
+            in >> material_name;
+        }
+    }
+    fs.close();
+
+    return !vertices.empty();
+}
+
+bool Ruler::TriMesh::loadTexture(const std::string& tex_path)
+{
+    teximage = cv::imread(tex_path);
+    return true;
+}
+
+bool Ruler::TriMesh::saveOBJ(const std::string& obj_path)
+{
+    std::ofstream ofs(obj_path, std::ios::out);
+    std::string mtl_path = obj_path.substr(0, obj_path.length() - 4) + ".mtl";
+    ofs << "mtllib " << mtl_path << std::endl;
+
+    std::for_each(vertices.begin(), vertices.end(), [&](const cv::Point3f& pt)
+    {
+        ofs << "v " << pt.x << " " << pt.y << " " << pt.z << std::endl;
+    });
+
+    std::for_each(normals.begin(), normals.end(), [&](const cv::Point3f& pt)
+    {
+        ofs << "vn " << pt.x << " " << pt.y << " " << pt.z << std::endl;
+    });
+
+    ofs << "usemtl material_0" << std::endl;
+    std::for_each(texcoords.begin(), texcoords.end(), [&](const cv::Point2f& pt)
+    {
+        ofs << "vt " << pt.x << " " << pt.y << std::endl;
+    });
+
+    for (int i = 0; i < faces.size(); i++)
+    {
+        ofs << "f";
+        for (int j = 0; j < 3; j++)
+        {
+            ofs << " " << faces[i].vertices[j] + OBJ_INDEX_OFFSET;
+            ofs << "/" << faces[i].texcoords[j] + OBJ_INDEX_OFFSET;
+        }
+        ofs << std::endl;
+    }
+    ofs.close();
+
+    std::string texture_path = obj_path.substr(0, obj_path.length() - 4) + ".jpg";
+    if (!teximage.empty()) cv::imwrite(texture_path, teximage);
+
+    std::ofstream ofs2(mtl_path, std::ios::out);
+    ofs2 << "newmtl material_0" << std::endl
+        << "Ka 1 1 1" << std::endl
+        << "Kd 1 1 1" << std::endl
+        << "Ks 1 1 1" << std::endl
+        << "Ns 1000" << std::endl
+        << "map_Kd " << texture_path << std::endl;
+    ofs2.close();
+    return true;
+}

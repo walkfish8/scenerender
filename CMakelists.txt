@@ -1,0 +1,57 @@
+# CMake powered build system for Ruler_SceneRender
+
+########################################################################
+#
+# Project-wide settings
+cmake_minimum_required(VERSION 2.6.2 FATAL_ERROR)
+
+project(Ruler_SceneRender)
+
+set(RULER_SCENERENDER_VERSION 1.0.00)
+set(CMAKE_DEBUG_POSTFIX "_debug")
+set(CMAKE_RELEASE_POSTFIX "_release")
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+
+# Find dependencies:
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
+
+set(RULER_SCENERENDER_USE_OPENMP ON CACHE BOOL "Enable OpenMP library")
+if(RULER_SCENERENDER_USE_OPENMP)
+	find_package(OpenMP)
+	if(OPENMP_FOUND)
+	set(_USE_OPENMP TRUE)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+		add_definitions(-D_USE_OPENMP)
+	else()
+		message("-- Can't find OpenMP. Continuing without it.")
+	endif()
+endif()
+
+set(OpenCV_DIR "${PROJECT_SOURCE_DIR}/3rdparty/opencv2.4.13/")
+find_package(OpenCV REQUIRED)
+if(OpenCV_FOUND)
+SET(_USE_OPENCV TRUE)
+	include_directories(${OpenCV_INCLUDE_DIRS})
+	add_definitions(${OpenCV_DEFINITIONS})
+	message(STATUS "OpenCV ${OpenCV_VERSION} found (include: ${OpenCV_INCLUDE_DIRS})")
+else()
+	message("-- Can't find OpenCV. Please specify OpenCV directory using OpenCV_DIR variable")
+endif()
+
+include_directories("${PROJECT_SOURCE_DIR}/3rdparty/vld/include")
+set(VLD_LIBS "${PROJECT_SOURCE_DIR}/3rdparty/vld/lib/Win64/vld.lib")
+add_definitions(-DVLD_DECL=)
+message("VLD_LIBS : ${VLD_LIBS}")
+
+configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
+# include configure headers
+include_directories(${PROJECT_BINARY_DIR})
+include_directories("${PROJECT_SOURCE_DIR}/libs/scenerender")
+
+add_subdirectory(libs)
+add_subdirectory(demos)
