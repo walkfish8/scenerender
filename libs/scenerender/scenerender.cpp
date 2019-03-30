@@ -73,7 +73,7 @@ Ruler::RenderRectangle::RenderRectangle(const std::string& imgpath, const Ruler:
 
     mesh.clear();
     mesh.vertices = std::vector<cv::Point3f>{point_lt_new, point_rt_new, point_rb_new, point_lb_new};
-    mesh.texcoords = std::vector<cv::Point2f>{cv::Point2f(0.0, 1.0), cv::Point2f(1.0, 1.0), cv::Point2f(1.0, 0.0), cv::Point2f(0.0, 0.0)};
+    mesh.texcoords = std::vector<cv::Point2f>{cv::Point2f(1.0, 0.0), cv::Point2f(0.0, 0.0), cv::Point2f(0.0, 1.0), cv::Point2f(1.0, 1.0)};
     mesh.faces.resize(2);
     mesh.faces[0].vertices[0] = mesh.faces[0].texcoords[0] = 0;
     mesh.faces[0].vertices[1] = mesh.faces[0].texcoords[1] = 1;
@@ -118,32 +118,47 @@ Ruler::SceneRender::~SceneRender()
 
 cv::Mat Ruler::SceneRender::getPanoDepth()
 {
+    return std::move(sixbox_.convertSixBoxToPanorama(getSixBoxDepth()));
+}
+
+cv::Mat Ruler::SceneRender::getPanoRecord()
+{
+    return std::move(sixbox_.convertSixBoxLabelToPanorama(getSixBoxRecord()));
+}
+
+cv::Mat Ruler::SceneRender::getPanoSimulate()
+{
+    return std::move(sixbox_.convertSixBoxToPanorama(getSixBoxSimulate()));
+}
+
+cv::Mat Ruler::SceneRender::getSixBoxDepth()
+{
     cv::Mat sixdepth(boxwidth_, 6 * boxwidth_, CV_16U);
     for (int i = 0; i < 6; i++)
     {
         result_array_[i].depth.convertTo(sixdepth.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_16U);
     }
-    return std::move(sixbox_.convertSixBoxToPanorama(sixdepth));
+    return std::move(sixdepth);
 }
 
-cv::Mat Ruler::SceneRender::getPanoRecord()
+cv::Mat Ruler::SceneRender::getSixBoxRecord()
 {
-    cv::Mat sixrecord(boxwidth_, 6 * boxwidth_, CV_16U);
+    cv::Mat sixrecord(boxwidth_, 6 * boxwidth_, CV_32S);
     for (int i = 0; i < 6; i++)
     {
-        result_array_[i].record.convertTo(sixrecord.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_16U);
+        result_array_[i].record.convertTo(sixrecord.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_32S);
     }
-    return std::move(sixbox_.convertSixBoxLabelToPanorama(sixrecord));
+    return std::move(sixrecord);
 }
 
-cv::Mat Ruler::SceneRender::getPanoSimulate()
+cv::Mat Ruler::SceneRender::getSixBoxSimulate()
 {
     cv::Mat siximage(boxwidth_, 6 * boxwidth_, CV_8UC3);
     for (int i = 0; i < 6; i++)
     {
         result_array_[i].simulate.convertTo(siximage.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_8UC3);
     }
-    return std::move(sixbox_.convertSixBoxToPanorama(siximage));
+    return std::move(siximage);
 }
 
 void Ruler::SceneRender::render(const Ruler::RenderTrimesh& obj, int recordLabel)
@@ -167,8 +182,8 @@ void Ruler::SceneRender::renderMesh(const Ruler::TriMesh& mesh, int label)
     cv::Mat T = RT_.rowRange(0, 3).colRange(3, 4);
     cv::Mat C = -R.t()*T;
     std::vector<cv::Mat> rvecs = {
-        (cv::Mat_<double>(3, 1) << 0, 0, 0), (cv::Mat_<double>(3, 1) << 0, -CV_PI / 2, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI, 0),
-        (cv::Mat_<double>(3, 1) << 0, CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << -CV_PI / 2.0, 0, 0), (cv::Mat_<double>(3, 1) << CV_PI / 2.0, 0, 0) };
+        (cv::Mat_<double>(3, 1) << 0, 0, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI / 2, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI, 0),
+        (cv::Mat_<double>(3, 1) << 0, -CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << CV_PI / 2.0, 0, 0), (cv::Mat_<double>(3, 1) << -CV_PI / 2.0, 0, 0) };
 
     cv::Mat Rr;
     cv::Mat rvec_r = (cv::Mat_<double>(3, 1) << 0, 0, CV_PI);
@@ -178,7 +193,7 @@ void Ruler::SceneRender::renderMesh(const Ruler::TriMesh& mesh, int label)
         cv::Mat R0;
         cv::Rodrigues(rvecs[k], R0);
 
-        cv::Mat Rc = Rr*R0.t()*R;
+        cv::Mat Rc = R0.t()*Rr*R;
         cv::Mat Tc = -Rc*C;
         cv::Mat P = cv::Mat::eye(4, 4, CV_64F);
         Rc.copyTo(P.rowRange(0, 3).colRange(0, 3));
@@ -202,13 +217,10 @@ void Ruler::SceneRender::renderPano(const cv::Mat& panoimage)
             const auto& subimage_ptr = subimage.ptr<cv::Vec3b>(i);
             const auto& record_ptr = result_array_[k].record.ptr<int>(i);
             const auto& simulate_ptr = result_array_[k].simulate.ptr<cv::Vec3b>(i);
-
             for (int j = 0; j < boxwidth_; j++)
             {
                 if (record_ptr[j] <= 0)
-                {
                     simulate_ptr[j] = subimage_ptr[j];
-                }
             }
         }
     }

@@ -58,9 +58,18 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
         return cv::Point2f(atan2f(x, z) + CV_PI, acosf(y / r));
     };
 
-    std::vector<cv::Mat> rvecs = {
-        (cv::Mat_<double>(3, 1) << 0, 0, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI, 0),
-        (cv::Mat_<double>(3, 1) << 0, -CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << -CV_PI / 2.0, 0, 0), (cv::Mat_<double>(3, 1) << CV_PI / 2.0, 0, 0) };
+    //std::vector<cv::Mat> rvecs = {
+    //    (cv::Mat_<double>(3, 1) << 0, 0, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI, 0),
+    //    (cv::Mat_<double>(3, 1) << 0, -CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << -CV_PI / 2.0, 0, 0), (cv::Mat_<double>(3, 1) << CV_PI / 2.0, 0, 0) };
+    std::vector<cv::Mat> rotate_mats = 
+    {
+        (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        (cv::Mat_<double>(3, 3) << 0, 0, 1, 0, 1, 0, -1, 0, 0),
+        (cv::Mat_<double>(3, 3) << -1, 0, 0, 0, 1, 0, 0, 0, -1),
+        (cv::Mat_<double>(3, 3) << 0, 0, -1, 0, 1, 0, 1, 0, 0),
+        (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, 1, 0, -1, 0),
+        (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, -1, 0, 1, 0) 
+    };
 
     // 冗余一个像素，保持边界过度的平滑
     float boxwidth_cxy = (boxwidth - 1) / 2.0, boxwidth_fxy = (boxwidth - 1) / 2.0;;
@@ -69,9 +78,10 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
 #pragma omp parallel for
     for (int k = 0; k < 6; k++)
     {
-        cv::Mat R;
-        cv::Rodrigues(rvecs[k], R);
-        R = R_offset*R;
+        //cv::Mat R;
+        //cv::Rodrigues(rvecs[k], R);
+        //R = R_offset*R;
+        cv::Mat R = R_offset*rotate_mats[k];
 
         for (int i = 0; i < boxwidth; i++)
         {
@@ -97,9 +107,10 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
 #pragma omp parallel for
     for (int k = 0; k < 6; k++)
     {
-        cv::Mat R;
-        cv::Rodrigues(rvecs[k], R);
-        R = (R_offset*R).t();
+        //cv::Mat R;
+        //cv::Rodrigues(rvecs[k], R);
+        //R = (R_offset*R).t();
+        cv::Mat R = (R_offset*rotate_mats[k]).t();
         const auto& a0 = R.at<double>(0, 0); const auto& a1 = R.at<double>(0, 1); const auto& a2 = R.at<double>(0, 2);
         const auto& b0 = R.at<double>(1, 0); const auto& b1 = R.at<double>(1, 1); const auto& b2 = R.at<double>(1, 2);
         const auto& c0 = R.at<double>(2, 0); const auto& c1 = R.at<double>(2, 1); const auto& c2 = R.at<double>(2, 2);
@@ -163,13 +174,13 @@ cv::Mat Ruler::SixBox::convertSixBoxLabelToPanorama(const cv::Mat& boximage)
             int v = int(y + 0.5);
             if (u >= 0 && u < sixboxlength && v >= 0 && v < boxwidth_)
             {
-                panoimage.at<long>(j, i) = boximage.at<long>(v, u);
+                panoimage.at<int>(j, i) = boximage.at<int>(v, u);
             }
             else
             {
                 int u = int(x);
                 int v = int(y);
-                panoimage.at<long>(j, i) = boximage.at<long>(v, u);
+                panoimage.at<int>(j, i) = boximage.at<int>(v, u);
             }
         }
     }

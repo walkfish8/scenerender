@@ -33,9 +33,6 @@
 #include "raster.h"
 #include "sixbox.h"
 
-#include <vector>
-#include "opencv2/opencv.hpp"
-
 namespace Ruler
 {
 
@@ -93,6 +90,9 @@ public:
     cv::Mat getPanoDepth();
     cv::Mat getPanoRecord();
     cv::Mat getPanoSimulate();
+    cv::Mat getSixBoxDepth();
+    cv::Mat getSixBoxRecord();
+    cv::Mat getSixBoxSimulate();
 
 private:
     int boxwidth_, panowidth_, panoheight_;

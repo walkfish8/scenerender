@@ -28,7 +28,6 @@
 #define _SCENERENDER_CAMERA_H_
 
 #include "defines.h"
-#include "opencv2/opencv.hpp"
 
 namespace Ruler
 {

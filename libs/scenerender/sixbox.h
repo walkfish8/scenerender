@@ -28,7 +28,6 @@
 #define _SCENERENDER_SIXBOX_H_
 
 #include "defines.h"
-#include "opencv2\opencv.hpp"
 
 namespace Ruler
 {

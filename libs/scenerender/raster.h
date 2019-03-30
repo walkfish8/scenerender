@@ -28,8 +28,6 @@
 #define _SCENERENDER_RASTER_H_
 
 #include "defines.h"
-#include "opencv2/opencv.hpp"
-
 #include "camera.h"
 #include "trimesh.h"
 
