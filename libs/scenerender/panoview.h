@@ -37,7 +37,7 @@ class SCENERENDER_EXPORT PanoViewer
 {
 public:
     // 单例, 用于后续全局参数配置
-    static PanoViewer& instance(); 
+    static PanoViewer& instance();
 
     void show(const cv::Mat& siximage, const std::string& name = "");
 

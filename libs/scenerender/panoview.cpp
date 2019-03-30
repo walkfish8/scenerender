@@ -53,7 +53,7 @@ inline void onKeyboardEvent(unsigned char key, int x, int y);
 inline void onSpecialKeyEvent(int key, int x, int y);
 
 
-Ruler::PanoViewer::PanoViewer() 
+Ruler::PanoViewer::PanoViewer()
 {
     g_intersect_cx = g_intersect_cy = 0;
     g_degree_rx = g_degree_ry = g_degree_rz = 0.0;
@@ -100,7 +100,7 @@ void Ruler::PanoViewer::show(const cv::Mat& siximage, const std::string& name)
 
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);    //绘制图形时的回调
-    //glutKeyboardFunc(keyboard);
+    glutKeyboardFunc(onKeyboardEvent);
     glutMouseFunc(onMouseClickEvent);
     glutMotionFunc(onMouseMoveEvent);
     glutKeyboardFunc(onKeyboardEvent);
@@ -140,7 +140,7 @@ void drawCube(void)
     glPushMatrix();
     {
         gluLookAt(0, 0, -5, 0, 0, 0, 0, 1, 0);
-        glTranslatef(0.0f, 0.0f, -5.0f);    //移入屏幕 5 个单位
+        glTranslatef(0.0f, 0.0f, -5.0f);             //移入屏幕 5 个单位
         glRotatef(g_degree_rx, 1.0f, 0.0f, 0.0f);    //绕X轴旋转
         glRotatef(g_degree_ry, 0.0f, 1.0f, 0.0f);    //绕Y轴旋转
         glRotatef(g_degree_rz, 0.0f, 0.0f, 1.0f);    //绕Z轴旋转
@@ -148,59 +148,55 @@ void drawCube(void)
         glBindTexture(GL_TEXTURE_2D, g_textures_array[0]);    //选择纹理
         glBegin(GL_QUADS); {
             //前面：逆时针
-            glTexCoord2f(0.0f, 0.0f);
-            glVertex3f(1.0f, 1.0f, 1.0f);    //纹理和四边形的左下
-            glTexCoord2f(1.0f, 0.0f);
-            glVertex3f(-1.0f, 1.0f, 1.0f);     //纹理和四边形的右下
-            glTexCoord2f(1.0f, 1.0f);
-            glVertex3f(-1.0f, -1.0f, 1.0f);      //纹理和四边形的右上
-            glTexCoord2f(0.0f, 1.0f);
-            glVertex3f(1.0f, -1.0f, 1.0f);     //纹理和四边形的左上
+            glTexCoord2f(0.0f, 0.0f); glVertex3f(1.0f, 1.0f, 1.0f);      //纹理和四边形的左下
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, 1.0f, 1.0f);     //纹理和四边形的右下
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, 1.0f);    //纹理和四边形的右上
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(1.0f, -1.0f, 1.0f);     //纹理和四边形的左上
         }glEnd();
 
         glBindTexture(GL_TEXTURE_2D, g_textures_array[1]);    //选择纹理
         glBegin(GL_QUADS); {
             //右面：逆时针
             glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, 1.0f, 1.0f);    //纹理和四边形的左下
-            glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, 1.0f, -1.0f);    //纹理和四边形的右下
-            glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);    //纹理和四边形的右上
-            glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, -1.0f, 1.0f);    //纹理和四边形的左上
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, 1.0f, -1.0f);   //纹理和四边形的右下
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);  //纹理和四边形的右上
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, -1.0f, 1.0f);   //纹理和四边形的左上
         }glEnd();
 
         glBindTexture(GL_TEXTURE_2D, g_textures_array[2]);    //选择纹理
         glBegin(GL_QUADS); {
             //后面：逆时针
-            glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, 1.0f, -1.0f);    //纹理和四边形的左下
+            glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, 1.0f, -1.0f);   //纹理和四边形的左下
             glTexCoord2f(1.0f, 0.0f); glVertex3f(1.0f, 1.0f, -1.0f);    //纹理和四边形的右下
-            glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0f, -1.0f, -1.0f);    //纹理和四边形的右上
-            glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);    //纹理和四边形的左上
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0f, -1.0f, -1.0f);   //纹理和四边形的右上
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);  //纹理和四边形的左上
         }glEnd();
 
         glBindTexture(GL_TEXTURE_2D, g_textures_array[3]);    //选择纹理
         glBegin(GL_QUADS); {
             //左面：逆时针
             glTexCoord2f(0.0f, 0.0f); glVertex3f(1.0f, 1.0f, -1.0f);    //纹理和四边形的左下
-            glTexCoord2f(1.0f, 0.0f); glVertex3f(1.0f, 1.0f, 1.0f);    //纹理和四边形的右下
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(1.0f, 1.0f, 1.0f);     //纹理和四边形的右下
             glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0f, -1.0f, 1.0f);    //纹理和四边形的右上
-            glTexCoord2f(0.0f, 1.0f); glVertex3f(1.0f, -1.0f, -1.0f);    //纹理和四边形的左上
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(1.0f, -1.0f, -1.0f);   //纹理和四边形的左上
         }glEnd();
 
         glBindTexture(GL_TEXTURE_2D, g_textures_array[4]);    //选择纹理
         glBegin(GL_QUADS); {
             //顶面：逆时针
             glTexCoord2f(0.0f, 0.0f); glVertex3f(1.0f, 1.0f, -1.0f);    //纹理和四边形的右下
-            glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, 1.0f, -1.0f);    //纹理和四边形的右上
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, 1.0f, -1.0f);   //纹理和四边形的右上
             glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, 1.0f, 1.0f);    //纹理和四边形的左上
-            glTexCoord2f(0.0f, 1.0f); glVertex3f(1.0f, 1.0f, 1.0f);    //纹理和四边形的左下
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(1.0f, 1.0f, 1.0f);     //纹理和四边形的左下
         }glEnd();
 
         glBindTexture(GL_TEXTURE_2D, g_textures_array[5]);    //选择纹理
         glBegin(GL_QUADS); {
             //底面：逆时针
             glTexCoord2f(0.0f, 0.0f); glVertex3f(1.0f, -1.0f, 1.0f);    //纹理和四边形的左下
-            glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, 1.0f);    //纹理和四边形的右下
-            glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);    //纹理和四边形的右上
-            glTexCoord2f(0.0f, 1.0f); glVertex3f(1.0f, -1.0f, -1.0f);    //纹理和四边形的左上
+            glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, 1.0f);   //纹理和四边形的右下
+            glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);  //纹理和四边形的右上
+            glTexCoord2f(0.0f, 1.0f); glVertex3f(1.0f, -1.0f, -1.0f);   //纹理和四边形的左上
         }glEnd();
 
     }
@@ -213,10 +209,8 @@ void onMouseClickEvent(int button, int state, int x, int y)
 {
     if (state == GLUT_DOWN) //第一次鼠标按下时,记录鼠标在窗口中的初始坐标
     {
-        //记住鼠标点击后光标坐标
         g_intersect_cx = x;
         g_intersect_cy = y;
-        //printf("Mouse: x=%d, y=%d, oldx_Translatef=%f, oldy_Translatef=%f\n", x, y, oldx_Translatef, oldy_Translatef);
     }
 }
 
@@ -235,10 +229,6 @@ void onMouseMoveEvent(int x, int y)
     {
         g_degree_rx += ((y - g_intersect_cy) * offset);
     }
-    //printf("Move: x=%d(%d)[%d], y=%d(%d)[%d], xangle=%f, yangle=%f\n", 
-    //    x, cx, x-cx, 
-    //    y, cy, y-cy, 
-    //    xangle, yangle);
     glutPostRedisplay();
 
     //保存好当前拖放后光标坐标点
@@ -269,12 +259,12 @@ void onKeyboardEvent(unsigned char key, int x, int y)
         case 'Y':
             g_degree_ry -= 1.0f;
             break;
-            //case 'z':
-            //    zangle += 1.0f;
-            //    break;
-            //case 'Z':
-            //    zangle -= 1.0f;
-            //    break;
+        case 'z':
+            g_degree_rz += 1.0f;
+            break;
+        case 'Z':
+            g_degree_rz -= 1.0f;
+            break;
         default:
             return;
     }
@@ -285,7 +275,6 @@ void onKeyboardEvent(unsigned char key, int x, int y)
 void onSpecialKeyEvent(int key, int x, int y)
 {
     float offset = 1.5;
-    printf("key=%d\n", key);
     switch (key)
     {
         case GLUT_KEY_UP:                 //脑袋向上往前看
