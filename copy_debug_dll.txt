@@ -20,3 +20,4 @@
 .\3rdParty\vld\bin\Win64\vld_x64.dll
 .\3rdParty\vld\bin\Win64\Microsoft.DTfW.DHL.manifest
 .\3rdParty\vld\bin\Win64\vld_x64.pdb
+.\3rdparty\glut\bin\glut64.dll

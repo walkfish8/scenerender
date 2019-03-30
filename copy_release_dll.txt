@@ -16,3 +16,4 @@
 .\3rdparty\opencv2.4.13\x64\vc12\bin\opencv_superres2413.dll
 .\3rdparty\opencv2.4.13\x64\vc12\bin\opencv_video2413.dll
 .\3rdparty\opencv2.4.13\x64\vc12\bin\opencv_videostab2413.dll
+.\3rdparty\glut\bin\glut64.dll

@@ -24,40 +24,29 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
-#ifndef _SCENERENDER_SIXBOX_H_
-#define _SCENERENDER_SIXBOX_H_
+
+#ifndef _SCENERENDER_PANOVIEW_H_
+#define _SCENERENDER_PANOVIEW_H_
 
 #include "defines.h"
 
 namespace Ruler
 {
 
-class SCENERENDER_EXPORT SixBox
+class SCENERENDER_EXPORT PanoViewer
 {
 public:
-    SixBox();
-    ~SixBox();
+    // 单例, 用于后续全局参数配置
+    static PanoViewer& instance(); 
 
-    SixBox(int boxwidth, int panowidth, int panoheight, const cv::Mat& R_offset = cv::Mat::eye(3, 3, CV_64F));
-
-    // 初始化用于生成六面体到全景的映射关系，计算一次就可以了,其中R_offset用于指出中心偏移
-    bool init(int boxwidth, int panowidth, int panoheight, const cv::Mat& R_offset = cv::Mat::eye(3,3,CV_64F));
-
-    // 将六面体转换成全景
-    cv::Mat convertSixBoxToPanorama(const cv::Mat& boximage);
-    cv::Mat convertSixBoxLabelToPanorama(const cv::Mat& boximage);
-
-    // 将全景转换成六面体,依次为后左前右上下
-    cv::Mat convertPanoramaToSixBox(const cv::Mat& panoimage);
+    void show(const cv::Mat& siximage, const std::string& name = "");
 
 private:
-    cv::Mat map_sixbox_to_pano_x_, map_sixbox_to_pano_y_; // 六面体到全景的映射
-    cv::Mat map_pano_to_sixbox_x_, map_pano_to_sixbox_y_; // 全景到六面体的映射
-
-    int boxwidth_, panowidth_, panoheight_;
+    PanoViewer();
+    ~PanoViewer();
+    PanoViewer(PanoViewer&) = delete;
 };
 
-} // namspace Ruler
+}
 
-
-#endif // _SCENERENDER_SIXBOX_H_
+#endif // _SCENERENDER_PANOVIEW_H_

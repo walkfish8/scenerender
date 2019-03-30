@@ -48,6 +48,10 @@ set(VLD_LIBS "${PROJECT_SOURCE_DIR}/3rdparty/vld/lib/Win64/vld.lib")
 add_definitions(-DVLD_DECL=)
 message("VLD_LIBS : ${VLD_LIBS}")
 
+include_directories("${PROJECT_SOURCE_DIR}/3rdparty/glut/include")
+set(GLUT_LIBS "${PROJECT_SOURCE_DIR}/3rdparty/glut/lib/glut32.lib")
+message("GLUT_LIBS : ${GLUT_LIBS}")
+
 configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/config.h)
 # include configure headers
 include_directories(${PROJECT_BINARY_DIR})

@@ -14,5 +14,5 @@ SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -Wall")
 
 add_definitions(-DSCENERENDER_EXPORTS)
 add_library(scenerender SHARED ${LIBRARY_FILES_C} ${LIBRARY_FILES_H})
-target_link_libraries(scenerender ${OpenCV_LIBS} ${VLD_LIBS})
+target_link_libraries(scenerender ${OpenCV_LIBS} ${VLD_LIBS} ${GLUT_LIBS})
 SET_PROPERTY(TARGET scenerender PROPERTY FOLDER "libs")

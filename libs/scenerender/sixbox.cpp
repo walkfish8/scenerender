@@ -34,6 +34,11 @@ Ruler::SixBox::SixBox()
 Ruler::SixBox::~SixBox()
 {}
 
+Ruler::SixBox::SixBox(int boxwidth, int panowidth, int panoheight, const cv::Mat& R_offset)
+{
+    init(boxwidth, panowidth, panoheight, R_offset);
+}
+
 // ÓÒÊÖ×ø±êÏµ
 bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::Mat& R_offset)
 {
@@ -78,11 +83,7 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
 #pragma omp parallel for
     for (int k = 0; k < 6; k++)
     {
-        //cv::Mat R;
-        //cv::Rodrigues(rvecs[k], R);
-        //R = R_offset*R;
         cv::Mat R = R_offset*rotate_mats[k];
-
         for (int i = 0; i < boxwidth; i++)
         {
             for (int j = 0; j < boxwidth; j++)
@@ -107,9 +108,6 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
 #pragma omp parallel for
     for (int k = 0; k < 6; k++)
     {
-        //cv::Mat R;
-        //cv::Rodrigues(rvecs[k], R);
-        //R = (R_offset*R).t();
         cv::Mat R = (R_offset*rotate_mats[k]).t();
         const auto& a0 = R.at<double>(0, 0); const auto& a1 = R.at<double>(0, 1); const auto& a2 = R.at<double>(0, 2);
         const auto& b0 = R.at<double>(1, 0); const auto& b1 = R.at<double>(1, 1); const auto& b2 = R.at<double>(1, 2);
