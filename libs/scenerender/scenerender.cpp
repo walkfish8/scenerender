@@ -94,7 +94,7 @@ Ruler::RenderPanorama::RenderPanorama(const std::string& panopath)
 Ruler::SceneRender::SceneRender(const CameraD& param, int boxwidth, int panowidth, int panoheight)
 {
     Ruler::Timer::tic();
-    Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_INFO);
+    Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_DEBUG);
     Ruler::Logger::info("initialize...\n");
     boxwidth_ = boxwidth;
     panowidth_ = panowidth;
