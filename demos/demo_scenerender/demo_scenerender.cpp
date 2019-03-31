@@ -1,5 +1,6 @@
 #include "scenerender.h"
 #include "panoview.h"
+#include "timer.h"
 
 void main()
 {
@@ -13,6 +14,7 @@ void main()
     rectparam.SetQuaternionRotation(7.056712382872147e-8, 0.7071067905528803, -7.056712569818394e-8, 0.7071067718202149);
     rectparam.SetTranslation(-6.958500385284424*scale, 1.2746762037277222*scale, 4.447582721710205*scale);
 
+    
     Ruler::SceneRender sr(cameraparam, 2048, 6000, 3000);
     sr.render(Ruler::RenderPanorama("..\\..\\..\\datas\\scene01\\È«¾°Í¼.jpg"));
     //sr.render(Ruler::RenderTrimesh("..\\..\\..\\datas\\scene01\\obj\\012.obj", "", true));
