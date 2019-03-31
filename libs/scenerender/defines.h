@@ -109,6 +109,7 @@ enum SCENERENDER_datatype_t
 #include <stdio.h>
 #include <stdarg.h>
 
+#include <vld.h>
 #include "opencv2/opencv.hpp"
 
 #endif /* SCENERENDER_DEFINES_H_ */

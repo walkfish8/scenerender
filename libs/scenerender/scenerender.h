@@ -29,50 +29,11 @@
 
 #include "defines.h"
 #include "camera.h"
-#include "trimesh.h"
-#include "raster.h"
-#include "sixbox.h"
 
 namespace Ruler
 {
 
-enum class ObjectState
-{
-    OBJECTSTATE_TRIMESH,
-    OBJECTSTATE_RECTANGLE,
-    OBJECTSTATE_PANORAMA
-};
-
-class SCENERENDER_EXPORT RenderObject
-{
-public:
-    TriMesh mesh;
-    virtual ObjectState label() = 0;
-};
-
-class SCENERENDER_EXPORT RenderTrimesh : public RenderObject
-{
-public:
-    RenderTrimesh(const std::string& objpath, const std::string& imgpath = "", bool is_rotate_axis = false);
-
-    virtual ObjectState label() { return ObjectState::OBJECTSTATE_TRIMESH; }
-};
-
-class SCENERENDER_EXPORT RenderRectangle :public RenderObject
-{
-public:
-    RenderRectangle(const std::string& imgpath, const CameraD& param, float rectw, float recth, bool is_rotate_axis = false);
-
-    virtual ObjectState label() { return ObjectState::OBJECTSTATE_RECTANGLE; }
-};
-
-class SCENERENDER_EXPORT RenderPanorama :public RenderObject
-{
-public:
-    RenderPanorama(const std::string& panopath);
-
-    virtual ObjectState label() { return ObjectState::OBJECTSTATE_PANORAMA; }
-};
+class SceneRenderImpl;
 
 class SCENERENDER_EXPORT SceneRender
 {
@@ -80,27 +41,22 @@ public:
     SceneRender(const CameraD& param, int boxwidth, int panowidth, int panoheight);
     ~SceneRender();
 
-    void render(const RenderPanorama& obj);
-    void render(const RenderTrimesh& obj, int recordLabel = -1);
-    void render(const RenderRectangle& obj, int recordLabel = -1);
+    void renderPanorama(const char* panopath);
+    void renderTrimesh(const char* objpath, const char* imgpath = "", int record_label = 0, bool is_rotate_axis = false);
+    void renderRectangle(const char* imgpath, const CameraD& param, float rectw, float recth, int record_label = 1, bool is_rotate_axis = false);
 
-    void renderPano(const cv::Mat& panoimage);
-    void renderMesh(const TriMesh& mesh, int recordLabel = 0);
+    void savePanoDepthImage(const char* imgpath);
+    void savePanoRecordImage(const char* imgpath);
+    void savePanoSimulateImage(const char* imgpath);
 
-    cv::Mat getPanoDepth();
-    cv::Mat getPanoRecord();
-    cv::Mat getPanoSimulate();
-    cv::Mat getSixBoxDepth();
-    cv::Mat getSixBoxRecord();
-    cv::Mat getSixBoxSimulate();
+    void saveSixBoxDepthImage(const char* imgpath);
+    void saveSixBoxRecordImage(const char* imgpath);
+    void saveSixBoxSimulateImage(const char* imgpath);
+
+    void showPanoSimulateWithOpenGL();
 
 private:
-    int boxwidth_, panowidth_, panoheight_;
-    MeshRasterResult result_array_[6];
-
-    cv::Mat K_; // 相机内参
-    cv::Mat RT_; // 相机外参数
-    SixBox sixbox_;
+    SceneRenderImpl* const impl_ptr_;
 };
 
 } // namespace Ruler

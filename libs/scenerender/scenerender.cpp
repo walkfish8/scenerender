@@ -25,19 +25,130 @@
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 #include "scenerender.h"
-#include "sixbox.h"
-#include "raster.h"
-#include "logger.h"
 #include "timer.h"
+#include "logger.h"
+#include "camera.h"
+#include "trimesh.h"
+#include "raster.h"
+#include "sixbox.h"
+#include "panoview.h"
 
-Ruler::RenderTrimesh::RenderTrimesh(const std::string& objpath, const std::string& imgpath, bool is_rotate_axis)
+//Ruler::RenderTrimesh::RenderTrimesh(const std::string& objpath, const std::string& imgpath, bool is_rotate_axis)
+//{
+//    mesh.loadOBJ(objpath, is_rotate_axis);
+//    mesh.loadTexture(imgpath);
+//}
+//
+//Ruler::RenderRectangle::RenderRectangle(const std::string& imgpath, const Ruler::CameraD& param, float rectwx, float recthy, bool is_rotate_axis)
+//{
+//    cv::Mat R = param.GetRotationMatrix();
+//    cv::Mat tvec = param.GetTranslationMatrix();
+//
+//    const auto& a0 = R.at<double>(0, 0); const auto& a1 = R.at<double>(0, 1); const auto& a2 = R.at<double>(0, 2);
+//    const auto& b0 = R.at<double>(1, 0); const auto& b1 = R.at<double>(1, 1); const auto& b2 = R.at<double>(1, 2);
+//    const auto& c0 = R.at<double>(2, 0); const auto& c1 = R.at<double>(2, 1); const auto& c2 = R.at<double>(2, 2);
+//    const auto& tx = tvec.at<double>(0, 0); const auto& ty = tvec.at<double>(1, 0); const auto& tz = tvec.at<double>(2, 0);
+//
+//    double x(0), y(0), z(0);
+//    cv::Point3f point_lt = cv::Point3f(-rectwx / 2.0, recthy / 2.0, 0);
+//    cv::Point3f point_rt = cv::Point3f(rectwx / 2.0, recthy / 2.0, 0);
+//    cv::Point3f point_rb = cv::Point3f(rectwx / 2.0, -recthy / 2.0, 0);
+//    cv::Point3f point_lb = cv::Point3f(-rectwx / 2.0, -recthy / 2.0, 0);
+//
+//    x = a0*point_lt.x + a1*point_lt.y + a2*point_lt.z + tx;
+//    y = b0*point_lt.x + b1*point_lt.y + b2*point_lt.z + ty;
+//    z = c0*point_lt.x + c1*point_lt.y + c2*point_lt.z + tz;
+//    cv::Point3f point_lt_new = is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z);
+//
+//    x = a0*point_rt.x + a1*point_rt.y + a2*point_rt.z + tx;
+//    y = b0*point_rt.x + b1*point_rt.y + b2*point_rt.z + ty;
+//    z = c0*point_rt.x + c1*point_rt.y + c2*point_rt.z + tz;
+//    cv::Point3f point_rt_new = is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z);
+//
+//    x = a0*point_rb.x + a1*point_rb.y + a2*point_rb.z + tx;
+//    y = b0*point_rb.x + b1*point_rb.y + b2*point_rb.z + ty;
+//    z = c0*point_rb.x + c1*point_rb.y + c2*point_rb.z + tz;
+//    cv::Point3f point_rb_new = is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z);
+//
+//    x = a0*point_lb.x + a1*point_lb.y + a2*point_lb.z + tx;
+//    y = b0*point_lb.x + b1*point_lb.y + b2*point_lb.z + ty;
+//    z = c0*point_lb.x + c1*point_lb.y + c2*point_lb.z + tz;
+//    cv::Point3f point_lb_new = is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z);
+//
+//    mesh.clear();
+//    mesh.vertices = std::vector<cv::Point3f>{point_lt_new, point_rt_new, point_rb_new, point_lb_new};
+//    mesh.texcoords = std::vector<cv::Point2f>{cv::Point2f(1.0, 0.0), cv::Point2f(0.0, 0.0), cv::Point2f(0.0, 1.0), cv::Point2f(1.0, 1.0)};
+//    mesh.faces.resize(2);
+//    mesh.faces[0].vertices[0] = mesh.faces[0].texcoords[0] = 0;
+//    mesh.faces[0].vertices[1] = mesh.faces[0].texcoords[1] = 1;
+//    mesh.faces[0].vertices[2] = mesh.faces[0].texcoords[2] = 3;
+//    mesh.faces[1].vertices[0] = mesh.faces[1].texcoords[0] = 1;
+//    mesh.faces[1].vertices[1] = mesh.faces[1].texcoords[1] = 2;
+//    mesh.faces[1].vertices[2] = mesh.faces[1].texcoords[2] = 3;
+//
+//    mesh.loadTexture(imgpath);
+//}
+//
+//Ruler::RenderPanorama::RenderPanorama(const std::string& panopath)
+//{
+//    mesh.loadTexture(panopath);
+//}
+
+namespace Ruler
 {
-    mesh.loadOBJ(objpath, is_rotate_axis);
-    mesh.loadTexture(imgpath);
+
+class SceneRenderImpl
+{
+public:
+    SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight);
+    ~SceneRenderImpl();
+
+    //void render(const RenderPanorama& obj);
+    //void render(const RenderTrimesh& obj, int recordLabel = -1);
+    //void render(const RenderRectangle& obj, int recordLabel = -1);
+
+    void renderPano(const cv::Mat& panoimage);
+    void renderMesh(const TriMesh& mesh, int recordLabel = 0);
+
+    cv::Mat getPanoDepth();
+    cv::Mat getPanoRecord();
+    cv::Mat getPanoSimulate();
+    cv::Mat getSixBoxDepth();
+    cv::Mat getSixBoxRecord();
+    cv::Mat getSixBoxSimulate();
+
+private:
+    int boxwidth_, panowidth_, panoheight_;
+    MeshRasterResult result_array_[6];
+
+    cv::Mat K_; // 相机内参
+    cv::Mat RT_; // 相机外参数
+    SixBox sixbox_;
+};
+
+
+SceneRender::SceneRender(const CameraD& param, int boxwidth, int panowidth, int panoheight)
+    : impl_ptr_(new SceneRenderImpl(param, boxwidth, panowidth, panoheight))
+{}
+
+SceneRender::~SceneRender() { delete impl_ptr_; }
+
+void SceneRender::renderPanorama(const char* panopath)
+{
+    impl_ptr_->renderPano(cv::imread(panopath));
 }
 
-Ruler::RenderRectangle::RenderRectangle(const std::string& imgpath, const Ruler::CameraD& param, float rectwx, float recthy, bool is_rotate_axis)
+void SceneRender::renderTrimesh(const char* objpath, const char* imgpath, int record_label, bool is_rotate_axis)
 {
+    Ruler::TriMesh mesh;
+    mesh.loadOBJ(objpath, is_rotate_axis);
+    mesh.loadTexture(imgpath);
+    impl_ptr_->renderMesh(mesh, record_label);
+}
+
+void SceneRender::renderRectangle(const char* imgpath, const CameraD& param, float rectw, float recth, int record_label, bool is_rotate_axis)
+{
+    Ruler::TriMesh mesh;
     cv::Mat R = param.GetRotationMatrix();
     cv::Mat tvec = param.GetTranslationMatrix();
 
@@ -47,10 +158,10 @@ Ruler::RenderRectangle::RenderRectangle(const std::string& imgpath, const Ruler:
     const auto& tx = tvec.at<double>(0, 0); const auto& ty = tvec.at<double>(1, 0); const auto& tz = tvec.at<double>(2, 0);
 
     double x(0), y(0), z(0);
-    cv::Point3f point_lt = cv::Point3f(-rectwx / 2.0, recthy / 2.0, 0);
-    cv::Point3f point_rt = cv::Point3f(rectwx / 2.0, recthy / 2.0, 0);
-    cv::Point3f point_rb = cv::Point3f(rectwx / 2.0, -recthy / 2.0, 0);
-    cv::Point3f point_lb = cv::Point3f(-rectwx / 2.0, -recthy / 2.0, 0);
+    cv::Point3f point_lt = cv::Point3f(-rectw / 2.0, recth / 2.0, 0);
+    cv::Point3f point_rt = cv::Point3f(rectw / 2.0, recth / 2.0, 0);
+    cv::Point3f point_rb = cv::Point3f(rectw / 2.0, -recth / 2.0, 0);
+    cv::Point3f point_lb = cv::Point3f(-rectw / 2.0, -recth / 2.0, 0);
 
     x = a0*point_lt.x + a1*point_lt.y + a2*point_lt.z + tx;
     y = b0*point_lt.x + b1*point_lt.y + b2*point_lt.z + ty;
@@ -82,16 +193,49 @@ Ruler::RenderRectangle::RenderRectangle(const std::string& imgpath, const Ruler:
     mesh.faces[1].vertices[0] = mesh.faces[1].texcoords[0] = 1;
     mesh.faces[1].vertices[1] = mesh.faces[1].texcoords[1] = 2;
     mesh.faces[1].vertices[2] = mesh.faces[1].texcoords[2] = 3;
-
     mesh.loadTexture(imgpath);
+
+    impl_ptr_->renderMesh(mesh, record_label);
 }
 
-Ruler::RenderPanorama::RenderPanorama(const std::string& panopath)
+void SceneRender::savePanoDepthImage(const char* imgpath)
 {
-    mesh.loadTexture(panopath);
+    cv::imwrite(imgpath, impl_ptr_->getPanoDepth());
 }
 
-Ruler::SceneRender::SceneRender(const CameraD& param, int boxwidth, int panowidth, int panoheight)
+void SceneRender::savePanoRecordImage(const char* imgpath)
+{
+    cv::imwrite(imgpath, impl_ptr_->getPanoRecord());
+}
+
+void SceneRender::savePanoSimulateImage(const char* imgpath)
+{
+    cv::imwrite(imgpath, impl_ptr_->getPanoSimulate());
+}
+
+void SceneRender::saveSixBoxDepthImage(const char* imgpath)
+{
+    cv::imwrite(imgpath, impl_ptr_->getSixBoxDepth());
+}
+
+void SceneRender::saveSixBoxRecordImage(const char* imgpath)
+{
+    cv::imwrite(imgpath, impl_ptr_->getSixBoxRecord());
+}
+
+void SceneRender::saveSixBoxSimulateImage(const char* imgpath)
+{
+    cv::imwrite(imgpath, impl_ptr_->getSixBoxSimulate());
+}
+
+void SceneRender::showPanoSimulateWithOpenGL()
+{
+    Ruler::PanoViewer::instance().show(impl_ptr_->getSixBoxSimulate(), "Panorama Viewer");
+}
+
+} // namespace Ruler
+
+Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight)
 {
     Ruler::Timer::tic();
     Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_DEBUG);
@@ -115,25 +259,25 @@ Ruler::SceneRender::SceneRender(const CameraD& param, int boxwidth, int panowidt
     Ruler::Logger::info("initialize finished..., elapsed %fs\n", Ruler::Timer::toc());
 }
 
-Ruler::SceneRender::~SceneRender()
+Ruler::SceneRenderImpl::~SceneRenderImpl()
 {}
 
-cv::Mat Ruler::SceneRender::getPanoDepth()
+cv::Mat Ruler::SceneRenderImpl::getPanoDepth()
 {
     return std::move(sixbox_.convertSixBoxToPanorama(getSixBoxDepth()));
 }
 
-cv::Mat Ruler::SceneRender::getPanoRecord()
+cv::Mat Ruler::SceneRenderImpl::getPanoRecord()
 {
     return std::move(sixbox_.convertSixBoxLabelToPanorama(getSixBoxRecord()));
 }
 
-cv::Mat Ruler::SceneRender::getPanoSimulate()
+cv::Mat Ruler::SceneRenderImpl::getPanoSimulate()
 {
     return std::move(sixbox_.convertSixBoxToPanorama(getSixBoxSimulate()));
 }
 
-cv::Mat Ruler::SceneRender::getSixBoxDepth()
+cv::Mat Ruler::SceneRenderImpl::getSixBoxDepth()
 {
     cv::Mat sixdepth(boxwidth_, 6 * boxwidth_, CV_16U);
     for (int i = 0; i < 6; i++)
@@ -143,7 +287,7 @@ cv::Mat Ruler::SceneRender::getSixBoxDepth()
     return std::move(sixdepth);
 }
 
-cv::Mat Ruler::SceneRender::getSixBoxRecord()
+cv::Mat Ruler::SceneRenderImpl::getSixBoxRecord()
 {
     cv::Mat sixrecord(boxwidth_, 6 * boxwidth_, CV_32S);
     for (int i = 0; i < 6; i++)
@@ -153,7 +297,7 @@ cv::Mat Ruler::SceneRender::getSixBoxRecord()
     return std::move(sixrecord);
 }
 
-cv::Mat Ruler::SceneRender::getSixBoxSimulate()
+cv::Mat Ruler::SceneRenderImpl::getSixBoxSimulate()
 {
     cv::Mat siximage(boxwidth_, 6 * boxwidth_, CV_8UC3);
     for (int i = 0; i < 6; i++)
@@ -163,22 +307,22 @@ cv::Mat Ruler::SceneRender::getSixBoxSimulate()
     return std::move(siximage);
 }
 
-void Ruler::SceneRender::render(const Ruler::RenderTrimesh& obj, int recordLabel)
-{
-    renderMesh(obj.mesh, obj.mesh.teximage.empty() ? 0 : recordLabel);
-}
+//void Ruler::SceneRenderImpl::render(const Ruler::RenderTrimesh& obj, int recordLabel)
+//{
+//    renderMesh(obj.mesh, obj.mesh.teximage.empty() ? 0 : recordLabel);
+//}
+//
+//void Ruler::SceneRenderImpl::render(const Ruler::RenderPanorama& obj)
+//{
+//    renderPano(obj.mesh.teximage);
+//}
+//
+//void Ruler::SceneRenderImpl::render(const Ruler::RenderRectangle& obj, int recordLabel)
+//{
+//    renderMesh(obj.mesh, obj.mesh.teximage.empty() ? 1 : recordLabel);
+//}
 
-void Ruler::SceneRender::render(const Ruler::RenderPanorama& obj)
-{
-    renderPano(obj.mesh.teximage);
-}
-
-void Ruler::SceneRender::render(const Ruler::RenderRectangle& obj, int recordLabel)
-{
-    renderMesh(obj.mesh, obj.mesh.teximage.empty() ? 1 : recordLabel);
-}
-
-void Ruler::SceneRender::renderMesh(const Ruler::TriMesh& mesh, int label)
+void Ruler::SceneRenderImpl::renderMesh(const Ruler::TriMesh& mesh, int label)
 {
     cv::Mat R = RT_.rowRange(0, 3).colRange(0, 3);
     cv::Mat T = RT_.rowRange(0, 3).colRange(3, 4);
@@ -207,7 +351,7 @@ void Ruler::SceneRender::renderMesh(const Ruler::TriMesh& mesh, int label)
     }
 }
 
-void Ruler::SceneRender::renderPano(const cv::Mat& panoimage)
+void Ruler::SceneRenderImpl::renderPano(const cv::Mat& panoimage)
 {
     assert(panoimage.cols == panowidth_ && panoimage.rows == panoheight_);
 

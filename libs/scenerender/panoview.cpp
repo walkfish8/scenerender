@@ -70,9 +70,10 @@ Ruler::PanoViewer& Ruler::PanoViewer::instance()
 
 void Ruler::PanoViewer::show(const cv::Mat& siximage, const std::string& name)
 {
-    int c = 1;
-    char* cr[] = { "" };
-    glutInit(&c, cr);    //固定格式                    
+    int argc = 1;
+    char* argv[] = { "" };
+    glutInit(&argc, argv);    //固定格式
+
     glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
     glutInitWindowSize(1024 / 2, 1024 / 2);      //显示框的大小
     glutInitWindowPosition(100, 100);            //确定显示框左上角的位置
