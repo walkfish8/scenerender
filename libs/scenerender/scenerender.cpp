@@ -28,6 +28,7 @@
 #include "sixbox.h"
 #include "raster.h"
 #include "logger.h"
+#include "timer.h"
 
 Ruler::RenderTrimesh::RenderTrimesh(const std::string& objpath, const std::string& imgpath, bool is_rotate_axis)
 {
@@ -92,6 +93,7 @@ Ruler::RenderPanorama::RenderPanorama(const std::string& panopath)
 
 Ruler::SceneRender::SceneRender(const CameraD& param, int boxwidth, int panowidth, int panoheight)
 {
+    Ruler::Timer::tic();
     Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_INFO);
     Ruler::Logger::info("initialize...\n");
     boxwidth_ = boxwidth;
@@ -109,8 +111,8 @@ Ruler::SceneRender::SceneRender(const CameraD& param, int boxwidth, int panowidt
     RT_ = param.GetRotationAndTranslationMatrix();
     sixbox_ = Ruler::SixBox();
     sixbox_.init(boxwidth_, panowidth_, panoheight_);
-    Ruler::Logger::info("initialize finished...\n");
-    
+
+    Ruler::Logger::info("initialize finished..., elapsed %fs\n", Ruler::Timer::toc());
 }
 
 Ruler::SceneRender::~SceneRender()
@@ -190,6 +192,7 @@ void Ruler::SceneRender::renderMesh(const Ruler::TriMesh& mesh, int label)
     cv::Rodrigues(rvec_r, Rr);
     for (int k = 0; k < 6; k++)
     {
+        Ruler::Timer::tic();
         cv::Mat R0;
         cv::Rodrigues(rvecs[k], R0);
 
@@ -200,7 +203,7 @@ void Ruler::SceneRender::renderMesh(const Ruler::TriMesh& mesh, int label)
         Tc.copyTo(P.rowRange(0, 3).colRange(3, 4));
 
         Ruler::MeshRaster::raster(mesh, K_, P, boxwidth_, boxwidth_, result_array_[k], label);
-        Ruler::Logger::info("finished %d...\n", k);
+        Ruler::Logger::info("finished %d..., elapsed %fs\n", k, Ruler::Timer::toc());
     }
 }
 
