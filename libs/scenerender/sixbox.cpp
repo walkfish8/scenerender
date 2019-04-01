@@ -87,6 +87,8 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
     for (int k = 0; k < 6; k++)
     {
         cv::Mat R = R_offset*rotate_mats[k];
+
+#pragma omp parallel for
         for (int i = 0; i < boxwidth; i++)
         {
             for (int j = 0; j < boxwidth; j++)
@@ -116,8 +118,11 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
         const auto& b0 = R.at<double>(1, 0); const auto& b1 = R.at<double>(1, 1); const auto& b2 = R.at<double>(1, 2);
         const auto& c0 = R.at<double>(2, 0); const auto& c1 = R.at<double>(2, 1); const auto& c2 = R.at<double>(2, 2);
 
+#pragma omp parallel for
         for (int j = 0; j < panoheight; j++)
         {
+
+#pragma omp parallel for
             for (int i = 0; i < panowidth; i++)
             {
                 float alpha = (i - pano_cx)*angle_per_pixel;
@@ -164,6 +169,8 @@ cv::Mat Ruler::SixBox::convertSixBoxLabelToPanorama(const cv::Mat& boximage)
 
     int sixboxlength = boxwidth_ * 6;
     cv::Mat panoimage = -cv::Mat::ones(map_pano_to_sixbox_x_.size(), CV_32S);
+
+#pragma omp parallel for
     for (int j = 0; j < map_pano_to_sixbox_x_.rows; j++)
     {
         for (int i = 0; i < map_pano_to_sixbox_x_.cols; i++)

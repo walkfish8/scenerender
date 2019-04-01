@@ -58,6 +58,8 @@ private:
 
     cv::Mat K_; // 相机内参
     cv::Mat RT_; // 相机外参数
+    cv::Mat rotate_mats_[6];
+
     SixBox sixbox_;
 };
 
@@ -168,20 +170,28 @@ void SceneRender::showPanoSimulateWithOpenGL()
 
 } // namespace Ruler
 
-Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight)
+Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight) 
+    : boxwidth_(boxwidth), panowidth_(panowidth), panoheight_(panoheight)
 {
     Ruler::Timer::tic();
     Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_DEBUG);
     Ruler::Logger::info("initialize...\n");
 
-    boxwidth_ = boxwidth;
-    panowidth_ = panowidth;
-    panoheight_ = panoheight;
+    std::vector<cv::Mat> rvecs = {
+        (cv::Mat_<double>(3, 1) << 0, 0, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI / 2, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI, 0),
+        (cv::Mat_<double>(3, 1) << 0, -CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << CV_PI / 2.0, 0, 0), (cv::Mat_<double>(3, 1) << -CV_PI / 2.0, 0, 0) };
+
+    cv::Mat Rr = (cv::Mat_<double>(3, 3) << -1, 0, 0, 0, -1, 0, 0, 0, 1); //相平面坐标系定义引起的旋转
+    cv::Mat Ro = (cv::Mat_<double>(3, 3) << 0, 1, 0, 0, 0, 1, 1, 0, 0); // 全景坐标系定义引起的旋转
     for (int k = 0; k < 6; k++)
     {
-        result_array_[k].depth = cv::Mat::zeros(boxwidth_, boxwidth_, CV_32F);
-        result_array_[k].record = -cv::Mat::ones(boxwidth_, boxwidth_, CV_32S);
-        result_array_[k].simulate = cv::Mat::zeros(boxwidth_, boxwidth_, CV_8UC3);
+        cv::Mat R0;
+        cv::Rodrigues(rvecs[k], R0); 
+        rotate_mats_[k] = Rr*R0*Ro;
+
+        result_array_[k].depth = cv::Mat::zeros(boxwidth, boxwidth, CV_32F);
+        result_array_[k].record = -cv::Mat::ones(boxwidth, boxwidth, CV_32S);
+        result_array_[k].simulate = cv::Mat::zeros(boxwidth, boxwidth, CV_8UC3);
     }
 
     float half_boxwidth = (boxwidth - 1.0f) / 2.0f;
@@ -193,7 +203,7 @@ Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int 
     RT_.at<double>(2, 0) = param.m[2][0]; RT_.at<double>(2, 1) = param.m[2][1]; RT_.at<double>(2, 2) = param.m[2][2]; RT_.at<double>(2, 3) = param.t[2];
     RT_ = RT_.inv();
 
-    sixbox_ = Ruler::SixBox(boxwidth_, panowidth_, panoheight_);
+    sixbox_ = Ruler::SixBox(boxwidth, panowidth, panoheight);
     Ruler::Logger::info("initialize finished..., elapsed %fs\n", Ruler::Timer::toc());
 }
 
@@ -247,39 +257,31 @@ cv::Mat Ruler::SceneRenderImpl::getSixBoxSimulate()
 
 void Ruler::SceneRenderImpl::renderMesh(const Ruler::TriMesh& mesh, int label)
 {
+    Ruler::Timer::tic();
     cv::Mat R = RT_.rowRange(0, 3).colRange(0, 3);
     cv::Mat T = RT_.rowRange(0, 3).colRange(3, 4);
     cv::Mat C = -R.t()*T;
 
-    std::vector<cv::Mat> rvecs = {
-        (cv::Mat_<double>(3, 1) << 0, 0, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI / 2, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI, 0),
-        (cv::Mat_<double>(3, 1) << 0, -CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << CV_PI / 2.0, 0, 0), (cv::Mat_<double>(3, 1) << -CV_PI / 2.0, 0, 0) };
-
-    cv::Mat Rr = (cv::Mat_<double>(3, 3) << -1, 0, 0, 0, -1, 0, 0, 0, 1); //相平面坐标系定义引起的旋转
-    cv::Mat Ro = (cv::Mat_<double>(3, 3) << 0, 1, 0, 0, 0, 1, 1, 0, 0); // 全景坐标系定义引起的旋转
-
+#pragma omp parallel for
     for (int k = 0; k < 6; k++)
     {
-        Ruler::Timer::tic();
-        cv::Mat R0;
-        cv::Rodrigues(rvecs[k], R0);
-
-        cv::Mat Rc = Rr*R0*Ro*R;
+        cv::Mat Rc = rotate_mats_[k]*R;
         cv::Mat Tc = -Rc*C;
         cv::Mat P = cv::Mat::eye(4, 4, CV_64F);
         Rc.copyTo(P.rowRange(0, 3).colRange(0, 3));
         Tc.copyTo(P.rowRange(0, 3).colRange(3, 4));
 
         Ruler::MeshRaster::raster(mesh, K_, P, boxwidth_, boxwidth_, result_array_[k], label);
-        Ruler::Logger::info("finished %d..., elapsed %fs\n", k, Ruler::Timer::toc());
     }
+    Ruler::Logger::info("renderMesh finished..., elapsed %fs\n", Ruler::Timer::toc());
 }
 
 void Ruler::SceneRenderImpl::renderPano(const cv::Mat& panoimage)
 {
     assert(panoimage.cols == panowidth_ && panoimage.rows == panoheight_);
-
     cv::Mat siximage = sixbox_.convertPanoramaToSixBox(panoimage);
+
+#pragma omp parallel for
     for (int k = 0; k < 6; k++)
     {
         cv::Mat subimage = siximage.colRange(k*boxwidth_, (k + 1)*boxwidth_);
