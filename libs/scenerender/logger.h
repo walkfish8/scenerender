@@ -29,9 +29,36 @@
 #define _SCENERENDER_LOGGER_H_
 
 #include "defines.h"
+#include <stdio.h>
+#include <stdarg.h>
 
 namespace Ruler
 {
+
+enum SCENERENDER_log_level_t
+{
+    SCENERENDER_LOG_NONE = 0,
+    SCENERENDER_LOG_FATAL = 1,
+    SCENERENDER_LOG_ERROR = 2,
+    SCENERENDER_LOG_WARN = 3,
+    SCENERENDER_LOG_INFO = 4,
+    SCENERENDER_LOG_DEBUG = 5
+};
+
+enum SCENERENDER_datatype_t
+{
+    SCENERENDER_NONE = -1,
+    SCENERENDER_INT8 = 0,
+    SCENERENDER_INT16 = 1,
+    SCENERENDER_INT32 = 2,
+    SCENERENDER_INT64 = 3,
+    SCENERENDER_UINT8 = 4,
+    SCENERENDER_UINT16 = 5,
+    SCENERENDER_UINT32 = 6,
+    SCENERENDER_UINT64 = 7,
+    SCENERENDER_FLOAT32 = 8,
+    SCENERENDER_FLOAT64 = 9
+};
 
 class Logger
 {

@@ -29,6 +29,10 @@
 #define _SCENERENDER_MESH_H_
 
 #include "defines.h"
+#include <vector>
+#include <string>
+
+#include "opencv2/opencv.hpp"
 
 namespace Ruler
 {

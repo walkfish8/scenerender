@@ -30,6 +30,8 @@
 
 #include "defines.h"
 
+#include "opencv2/opencv.hpp"
+
 namespace Ruler
 {
 

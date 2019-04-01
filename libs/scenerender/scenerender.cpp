@@ -85,16 +85,16 @@ void SceneRender::renderRectangle(const char* imgpath, const CameraD& param, flo
 {
     Ruler::TriMesh mesh;
 
-    double a0 = param.m[0][0]; double a1 = param.m[0][1]; double a2 = param.m[0][2];
-    double b0 = param.m[1][0]; double b1 = param.m[1][1]; double b2 = param.m[1][2];
-    double c0 = param.m[2][0]; double c1 = param.m[2][1]; double c2 = param.m[2][2];
-    double tx = param.t[0]; double ty = param.t[1]; double tz = param.t[2];
+    float a0 = param.m[0][0]; float a1 = param.m[0][1]; float a2 = param.m[0][2];
+    float b0 = param.m[1][0]; float b1 = param.m[1][1]; float b2 = param.m[1][2];
+    float c0 = param.m[2][0]; float c1 = param.m[2][1]; float c2 = param.m[2][2];
+    float tx = param.t[0]; float ty = param.t[1]; float tz = param.t[2];
 
-    double x(0), y(0), z(0);
-    cv::Point3f point_lt = cv::Point3f(-rectw / 2.0, recth / 2.0, 0);
-    cv::Point3f point_rt = cv::Point3f(rectw / 2.0, recth / 2.0, 0);
-    cv::Point3f point_rb = cv::Point3f(rectw / 2.0, -recth / 2.0, 0);
-    cv::Point3f point_lb = cv::Point3f(-rectw / 2.0, -recth / 2.0, 0);
+    float x(0), y(0), z(0);
+    cv::Point3f point_lt = cv::Point3f(-rectw / 2.0f, recth / 2.0f, 0.0f);
+    cv::Point3f point_rt = cv::Point3f(rectw / 2.0f, recth / 2.0f, 0.0f);
+    cv::Point3f point_rb = cv::Point3f(rectw / 2.0f, -recth / 2.0f, 0.0f);
+    cv::Point3f point_lb = cv::Point3f(-rectw / 2.0f, -recth / 2.0f, 0.0f);
 
     x = a0*point_lt.x + a1*point_lt.y + a2*point_lt.z + tx;
     y = b0*point_lt.x + b1*point_lt.y + b2*point_lt.z + ty;
@@ -173,6 +173,7 @@ Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int 
     Ruler::Timer::tic();
     Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_DEBUG);
     Ruler::Logger::info("initialize...\n");
+
     boxwidth_ = boxwidth;
     panowidth_ = panowidth;
     panoheight_ = panoheight;

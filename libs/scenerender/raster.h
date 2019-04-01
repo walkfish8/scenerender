@@ -31,6 +31,8 @@
 #include "camera.h"
 #include "trimesh.h"
 
+#include "opencv2/opencv.hpp"
+
 namespace Ruler
 {
 
