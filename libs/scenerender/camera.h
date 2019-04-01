@@ -58,7 +58,7 @@ struct CameraT_
         t[1] = (float_t)ty;
         t[2] = (float_t)tz;
 
-        Float q[4] = { qx, qy, qz, qw };
+        Float q[4] = { qw, qx, qy, qz};
         SetQuaternionRotation(q);
     }
 
@@ -198,7 +198,7 @@ struct CameraT_
 
     template <class Float> void SetQuaternionRotation(Float qx, Float qy, Float qz, Float qw)
     {
-        Float q[4] = { qx, qy, qz, qw };
+        Float q[4] = { qw, qx, qy, qz };
         SetQuaternionRotation(q);
     }
 
@@ -339,42 +339,42 @@ struct CameraT_
         T[0] = t[0];           T[1] = -t[1];		T[2] = -t[2];
     }
 
-    cv::Mat GetRotationAndTranslationMatrix() const
-    {
-        cv::Mat P(4, 4, CV_64F);
-        P.at<double>(0, 0) = m[0][0]; P.at<double>(0, 1) = m[0][1]; P.at<double>(0, 2) = m[0][2]; P.at<double>(0, 3) = t[0];
-        P.at<double>(1, 0) = m[1][0]; P.at<double>(1, 1) = m[1][1]; P.at<double>(1, 2) = m[1][2]; P.at<double>(1, 3) = t[1];
-        P.at<double>(2, 0) = m[2][0]; P.at<double>(2, 1) = m[2][1]; P.at<double>(2, 2) = m[2][2]; P.at<double>(2, 3) = t[2];
-        P.at<double>(3, 0) = 0;       P.at<double>(3, 1) = 0;       P.at<double>(3, 2) = 0;       P.at<double>(3, 3) = 1;
-        return std::move(P);
-    }
+    //cv::Mat GetRotationAndTranslationMatrix() const
+    //{
+    //    cv::Mat P(4, 4, CV_64F);
+    //    P.at<double>(0, 0) = m[0][0]; P.at<double>(0, 1) = m[0][1]; P.at<double>(0, 2) = m[0][2]; P.at<double>(0, 3) = t[0];
+    //    P.at<double>(1, 0) = m[1][0]; P.at<double>(1, 1) = m[1][1]; P.at<double>(1, 2) = m[1][2]; P.at<double>(1, 3) = t[1];
+    //    P.at<double>(2, 0) = m[2][0]; P.at<double>(2, 1) = m[2][1]; P.at<double>(2, 2) = m[2][2]; P.at<double>(2, 3) = t[2];
+    //    P.at<double>(3, 0) = 0;       P.at<double>(3, 1) = 0;       P.at<double>(3, 2) = 0;       P.at<double>(3, 3) = 1;
+    //    return std::move(P);
+    //}
 
-    cv::Mat GetRotationMatrix() const
-    {
-        cv::Mat R(3, 3, CV_64F);
-        R.at<double>(0, 0) = m[0][0]; R.at<double>(0, 1) = m[0][1]; R.at<double>(0, 2) = m[0][2];
-        R.at<double>(1, 0) = m[1][0]; R.at<double>(1, 1) = m[1][1]; R.at<double>(1, 2) = m[1][2];
-        R.at<double>(2, 0) = m[2][0]; R.at<double>(2, 1) = m[2][1]; R.at<double>(2, 2) = m[2][2];
-        return std::move(R);
-    }
+    //cv::Mat GetRotationMatrix() const
+    //{
+    //    cv::Mat R(3, 3, CV_64F);
+    //    R.at<double>(0, 0) = m[0][0]; R.at<double>(0, 1) = m[0][1]; R.at<double>(0, 2) = m[0][2];
+    //    R.at<double>(1, 0) = m[1][0]; R.at<double>(1, 1) = m[1][1]; R.at<double>(1, 2) = m[1][2];
+    //    R.at<double>(2, 0) = m[2][0]; R.at<double>(2, 1) = m[2][1]; R.at<double>(2, 2) = m[2][2];
+    //    return std::move(R);
+    //}
 
-    cv::Mat GetTranslationMatrix() const
-    {
-        cv::Mat T(3, 1, CV_64F);
-        T.at<double>(0, 0) = t[0];
-        T.at<double>(1, 0) = t[1];
-        T.at<double>(2, 0) = t[2];
-        return std::move(T);
-    }
+    //cv::Mat GetTranslationMatrix() const
+    //{
+    //    cv::Mat T(3, 1, CV_64F);
+    //    T.at<double>(0, 0) = t[0];
+    //    T.at<double>(1, 0) = t[1];
+    //    T.at<double>(2, 0) = t[2];
+    //    return std::move(T);
+    //}
 
-    cv::Mat GetPositionMatrix() const
-    {
-        cv::Mat C(3, 1, CV_64F);
-        C.at<double>(0, 0) = -(double(m[0][0])*double(t[0]) + double(m[1][0])*double(t[1]) + double(m[2][0])*double(t[2]));
-        C.at<double>(1, 0) = -(double(m[0][1])*double(t[0]) + double(m[1][1])*double(t[1]) + double(m[2][1])*double(t[2]));
-        C.at<double>(2, 0) = -(double(m[0][2])*double(t[0]) + double(m[1][2])*double(t[1]) + double(m[2][2])*double(t[2]));
-        return std::move(C);
-    }
+    //cv::Mat GetPositionMatrix() const
+    //{
+    //    cv::Mat C(3, 1, CV_64F);
+    //    C.at<double>(0, 0) = -(double(m[0][0])*double(t[0]) + double(m[1][0])*double(t[1]) + double(m[2][0])*double(t[2]));
+    //    C.at<double>(1, 0) = -(double(m[0][1])*double(t[0]) + double(m[1][1])*double(t[1]) + double(m[2][1])*double(t[2]));
+    //    C.at<double>(2, 0) = -(double(m[0][2])*double(t[0]) + double(m[1][2])*double(t[1]) + double(m[2][2])*double(t[2]));
+    //    return std::move(C);
+    //}
 };
 
 #undef CameraT

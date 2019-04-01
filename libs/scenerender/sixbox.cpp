@@ -43,6 +43,9 @@ Ruler::SixBox::SixBox(int boxwidth, int panowidth, int panoheight, const cv::Mat
 bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::Mat& R_offset)
 {
     assert(panoheight * 2 == panowidth && panoheight > 0);
+    
+    if (boxwidth_ == boxwidth && panowidth_ == panowidth && panoheight_ == panoheight)
+        return true;
 
     boxwidth_ = boxwidth;
     panowidth_ = panowidth;
@@ -151,7 +154,7 @@ cv::Mat Ruler::SixBox::convertSixBoxToPanorama(const cv::Mat& boximage)
     assert(boximage.cols == 6 * boxwidth_ && boximage.rows == boxwidth_);
 
     cv::Mat panoimage;
-    cv::remap(boximage, panoimage, map_pano_to_sixbox_x_, map_pano_to_sixbox_y_, CV_INTER_LINEAR);
+    cv::remap(boximage, panoimage, map_pano_to_sixbox_x_, map_pano_to_sixbox_y_, CV_INTER_LANCZOS4);
     return std::move(panoimage);
 }
 
@@ -182,7 +185,7 @@ cv::Mat Ruler::SixBox::convertSixBoxLabelToPanorama(const cv::Mat& boximage)
             }
         }
     }
-    //cv::remap(boximage, panoimage, map_pano_to_sixbox_x_, map_pano_to_sixbox_y_, CV_INTER_LINEAR);
+
     return std::move(panoimage);
 }
 
@@ -192,6 +195,6 @@ cv::Mat Ruler::SixBox::convertPanoramaToSixBox(const cv::Mat& panoimage)
     assert(panoimage.cols == panowidth_ && panoimage.rows == panoheight_);
 
     cv::Mat boximage;
-    cv::remap(panoimage, boximage, map_sixbox_to_pano_x_, map_sixbox_to_pano_y_, CV_INTER_LINEAR);
+    cv::remap(panoimage, boximage, map_sixbox_to_pano_x_, map_sixbox_to_pano_y_, CV_INTER_LANCZOS4);
     return std::move(boximage);
 }

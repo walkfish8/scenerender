@@ -33,67 +33,6 @@
 #include "sixbox.h"
 #include "panoview.h"
 
-//Ruler::RenderTrimesh::RenderTrimesh(const std::string& objpath, const std::string& imgpath, bool is_rotate_axis)
-//{
-//    mesh.loadOBJ(objpath, is_rotate_axis);
-//    mesh.loadTexture(imgpath);
-//}
-//
-//Ruler::RenderRectangle::RenderRectangle(const std::string& imgpath, const Ruler::CameraD& param, float rectwx, float recthy, bool is_rotate_axis)
-//{
-//    cv::Mat R = param.GetRotationMatrix();
-//    cv::Mat tvec = param.GetTranslationMatrix();
-//
-//    const auto& a0 = R.at<double>(0, 0); const auto& a1 = R.at<double>(0, 1); const auto& a2 = R.at<double>(0, 2);
-//    const auto& b0 = R.at<double>(1, 0); const auto& b1 = R.at<double>(1, 1); const auto& b2 = R.at<double>(1, 2);
-//    const auto& c0 = R.at<double>(2, 0); const auto& c1 = R.at<double>(2, 1); const auto& c2 = R.at<double>(2, 2);
-//    const auto& tx = tvec.at<double>(0, 0); const auto& ty = tvec.at<double>(1, 0); const auto& tz = tvec.at<double>(2, 0);
-//
-//    double x(0), y(0), z(0);
-//    cv::Point3f point_lt = cv::Point3f(-rectwx / 2.0, recthy / 2.0, 0);
-//    cv::Point3f point_rt = cv::Point3f(rectwx / 2.0, recthy / 2.0, 0);
-//    cv::Point3f point_rb = cv::Point3f(rectwx / 2.0, -recthy / 2.0, 0);
-//    cv::Point3f point_lb = cv::Point3f(-rectwx / 2.0, -recthy / 2.0, 0);
-//
-//    x = a0*point_lt.x + a1*point_lt.y + a2*point_lt.z + tx;
-//    y = b0*point_lt.x + b1*point_lt.y + b2*point_lt.z + ty;
-//    z = c0*point_lt.x + c1*point_lt.y + c2*point_lt.z + tz;
-//    cv::Point3f point_lt_new = is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z);
-//
-//    x = a0*point_rt.x + a1*point_rt.y + a2*point_rt.z + tx;
-//    y = b0*point_rt.x + b1*point_rt.y + b2*point_rt.z + ty;
-//    z = c0*point_rt.x + c1*point_rt.y + c2*point_rt.z + tz;
-//    cv::Point3f point_rt_new = is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z);
-//
-//    x = a0*point_rb.x + a1*point_rb.y + a2*point_rb.z + tx;
-//    y = b0*point_rb.x + b1*point_rb.y + b2*point_rb.z + ty;
-//    z = c0*point_rb.x + c1*point_rb.y + c2*point_rb.z + tz;
-//    cv::Point3f point_rb_new = is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z);
-//
-//    x = a0*point_lb.x + a1*point_lb.y + a2*point_lb.z + tx;
-//    y = b0*point_lb.x + b1*point_lb.y + b2*point_lb.z + ty;
-//    z = c0*point_lb.x + c1*point_lb.y + c2*point_lb.z + tz;
-//    cv::Point3f point_lb_new = is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z);
-//
-//    mesh.clear();
-//    mesh.vertices = std::vector<cv::Point3f>{point_lt_new, point_rt_new, point_rb_new, point_lb_new};
-//    mesh.texcoords = std::vector<cv::Point2f>{cv::Point2f(1.0, 0.0), cv::Point2f(0.0, 0.0), cv::Point2f(0.0, 1.0), cv::Point2f(1.0, 1.0)};
-//    mesh.faces.resize(2);
-//    mesh.faces[0].vertices[0] = mesh.faces[0].texcoords[0] = 0;
-//    mesh.faces[0].vertices[1] = mesh.faces[0].texcoords[1] = 1;
-//    mesh.faces[0].vertices[2] = mesh.faces[0].texcoords[2] = 3;
-//    mesh.faces[1].vertices[0] = mesh.faces[1].texcoords[0] = 1;
-//    mesh.faces[1].vertices[1] = mesh.faces[1].texcoords[1] = 2;
-//    mesh.faces[1].vertices[2] = mesh.faces[1].texcoords[2] = 3;
-//
-//    mesh.loadTexture(imgpath);
-//}
-//
-//Ruler::RenderPanorama::RenderPanorama(const std::string& panopath)
-//{
-//    mesh.loadTexture(panopath);
-//}
-
 namespace Ruler
 {
 
@@ -102,10 +41,6 @@ class SceneRenderImpl
 public:
     SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight);
     ~SceneRenderImpl();
-
-    //void render(const RenderPanorama& obj);
-    //void render(const RenderTrimesh& obj, int recordLabel = -1);
-    //void render(const RenderRectangle& obj, int recordLabel = -1);
 
     void renderPano(const cv::Mat& panoimage);
     void renderMesh(const TriMesh& mesh, int recordLabel = 0);
@@ -149,13 +84,11 @@ void SceneRender::renderTrimesh(const char* objpath, const char* imgpath, int re
 void SceneRender::renderRectangle(const char* imgpath, const CameraD& param, float rectw, float recth, int record_label, bool is_rotate_axis)
 {
     Ruler::TriMesh mesh;
-    cv::Mat R = param.GetRotationMatrix();
-    cv::Mat tvec = param.GetTranslationMatrix();
 
-    const auto& a0 = R.at<double>(0, 0); const auto& a1 = R.at<double>(0, 1); const auto& a2 = R.at<double>(0, 2);
-    const auto& b0 = R.at<double>(1, 0); const auto& b1 = R.at<double>(1, 1); const auto& b2 = R.at<double>(1, 2);
-    const auto& c0 = R.at<double>(2, 0); const auto& c1 = R.at<double>(2, 1); const auto& c2 = R.at<double>(2, 2);
-    const auto& tx = tvec.at<double>(0, 0); const auto& ty = tvec.at<double>(1, 0); const auto& tz = tvec.at<double>(2, 0);
+    double a0 = param.m[0][0]; double a1 = param.m[0][1]; double a2 = param.m[0][2];
+    double b0 = param.m[1][0]; double b1 = param.m[1][1]; double b2 = param.m[1][2];
+    double c0 = param.m[2][0]; double c1 = param.m[2][1]; double c2 = param.m[2][2];
+    double tx = param.t[0]; double ty = param.t[1]; double tz = param.t[2];
 
     double x(0), y(0), z(0);
     cv::Point3f point_lt = cv::Point3f(-rectw / 2.0, recth / 2.0, 0);
@@ -185,7 +118,7 @@ void SceneRender::renderRectangle(const char* imgpath, const CameraD& param, flo
 
     mesh.clear();
     mesh.vertices = std::vector<cv::Point3f>{point_lt_new, point_rt_new, point_rb_new, point_lb_new};
-    mesh.texcoords = std::vector<cv::Point2f>{cv::Point2f(1.0, 0.0), cv::Point2f(0.0, 0.0), cv::Point2f(0.0, 1.0), cv::Point2f(1.0, 1.0)};
+    mesh.texcoords = std::vector<cv::Point2f>{cv::Point2f(0.0, 1.0), cv::Point2f(1.0, 1.0), cv::Point2f(1.0, 0.0), cv::Point2f(0.0, 0.0)};
     mesh.faces.resize(2);
     mesh.faces[0].vertices[0] = mesh.faces[0].texcoords[0] = 0;
     mesh.faces[0].vertices[1] = mesh.faces[0].texcoords[1] = 1;
@@ -246,16 +179,20 @@ Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int 
     for (int k = 0; k < 6; k++)
     {
         result_array_[k].depth = cv::Mat::zeros(boxwidth_, boxwidth_, CV_32F);
-        result_array_[k].simulate = cv::Mat::zeros(boxwidth_, boxwidth_, CV_8UC3);
         result_array_[k].record = -cv::Mat::ones(boxwidth_, boxwidth_, CV_32S);
+        result_array_[k].simulate = cv::Mat::zeros(boxwidth_, boxwidth_, CV_8UC3);
     }
 
     float half_boxwidth = (boxwidth - 1.0f) / 2.0f;
     K_ = (cv::Mat_<double>(3, 3) << half_boxwidth, 0, half_boxwidth, 0, half_boxwidth, half_boxwidth, 0, 0, 1);
-    RT_ = param.GetRotationAndTranslationMatrix();
-    sixbox_ = Ruler::SixBox();
-    sixbox_.init(boxwidth_, panowidth_, panoheight_);
 
+    RT_ = cv::Mat::eye(4, 4, CV_64F);
+    RT_.at<double>(0, 0) = param.m[0][0]; RT_.at<double>(0, 1) = param.m[0][1]; RT_.at<double>(0, 2) = param.m[0][2]; RT_.at<double>(0, 3) = param.t[0];
+    RT_.at<double>(1, 0) = param.m[1][0]; RT_.at<double>(1, 1) = param.m[1][1]; RT_.at<double>(1, 2) = param.m[1][2]; RT_.at<double>(1, 3) = param.t[1];
+    RT_.at<double>(2, 0) = param.m[2][0]; RT_.at<double>(2, 1) = param.m[2][1]; RT_.at<double>(2, 2) = param.m[2][2]; RT_.at<double>(2, 3) = param.t[2];
+    RT_ = RT_.inv();
+
+    sixbox_ = Ruler::SixBox(boxwidth_, panowidth_, panoheight_);
     Ruler::Logger::info("initialize finished..., elapsed %fs\n", Ruler::Timer::toc());
 }
 
@@ -307,40 +244,26 @@ cv::Mat Ruler::SceneRenderImpl::getSixBoxSimulate()
     return std::move(siximage);
 }
 
-//void Ruler::SceneRenderImpl::render(const Ruler::RenderTrimesh& obj, int recordLabel)
-//{
-//    renderMesh(obj.mesh, obj.mesh.teximage.empty() ? 0 : recordLabel);
-//}
-//
-//void Ruler::SceneRenderImpl::render(const Ruler::RenderPanorama& obj)
-//{
-//    renderPano(obj.mesh.teximage);
-//}
-//
-//void Ruler::SceneRenderImpl::render(const Ruler::RenderRectangle& obj, int recordLabel)
-//{
-//    renderMesh(obj.mesh, obj.mesh.teximage.empty() ? 1 : recordLabel);
-//}
-
 void Ruler::SceneRenderImpl::renderMesh(const Ruler::TriMesh& mesh, int label)
 {
     cv::Mat R = RT_.rowRange(0, 3).colRange(0, 3);
     cv::Mat T = RT_.rowRange(0, 3).colRange(3, 4);
     cv::Mat C = -R.t()*T;
+
     std::vector<cv::Mat> rvecs = {
         (cv::Mat_<double>(3, 1) << 0, 0, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI / 2, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI, 0),
         (cv::Mat_<double>(3, 1) << 0, -CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << CV_PI / 2.0, 0, 0), (cv::Mat_<double>(3, 1) << -CV_PI / 2.0, 0, 0) };
 
-    cv::Mat Rr;
-    cv::Mat rvec_r = (cv::Mat_<double>(3, 1) << 0, 0, CV_PI);
-    cv::Rodrigues(rvec_r, Rr);
+    cv::Mat Rr = (cv::Mat_<double>(3, 3) << -1, 0, 0, 0, -1, 0, 0, 0, 1); //相平面坐标系定义引起的旋转
+    cv::Mat Ro = (cv::Mat_<double>(3, 3) << 0, 1, 0, 0, 0, 1, 1, 0, 0); // 全景坐标系定义引起的旋转
+
     for (int k = 0; k < 6; k++)
     {
         Ruler::Timer::tic();
         cv::Mat R0;
         cv::Rodrigues(rvecs[k], R0);
 
-        cv::Mat Rc = R0.t()*Rr*R;
+        cv::Mat Rc = Rr*R0*Ro*R;
         cv::Mat Tc = -Rc*C;
         cv::Mat P = cv::Mat::eye(4, 4, CV_64F);
         Rc.copyTo(P.rowRange(0, 3).colRange(0, 3));
