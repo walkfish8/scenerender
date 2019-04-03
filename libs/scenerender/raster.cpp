@@ -26,6 +26,7 @@
 *************************************************************************/
 #include "raster.h"
 #include "omp.h"
+#include "logger.h"
 
 const float g_max_value = std::numeric_limits<float>::max();
 
@@ -233,19 +234,65 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
         {
             cv::Mat remapimage;
             cv::remap(mesh.teximage, remapimage, map_x, map_y, cv::INTER_LINEAR);
-            for (int i = 0; i < image_height; i++)
+            if (mesh.teximage.channels() == 3)
             {
-                const auto& map_x_ptr = map_x.ptr<float>(i);
-                const auto& map_y_ptr = map_y.ptr<float>(i);
-                const auto& remapimage_ptr = remapimage.ptr<cv::Vec3b>(i);
-                const auto& simulate_ptr = result.simulate.ptr<cv::Vec3b>(i);
-                for (int j = 0; j < image_width; j++)
+                for (int i = 0; i < image_height; i++)
                 {
-                    if (map_x_ptr[j] >= 0 && map_y_ptr[j] >= 0 && map_x_ptr[j] <= mesh.teximage.cols && map_y_ptr[j] <= mesh.teximage.rows)
+                    const auto& map_x_ptr = map_x.ptr<float>(i);
+                    const auto& map_y_ptr = map_y.ptr<float>(i);
+                    const auto& remapimage_ptr = remapimage.ptr<cv::Vec3b>(i);
+                    const auto& simulate_ptr = result.simulate.ptr<cv::Vec3b>(i);
+                    for (int j = 0; j < image_width; j++)
                     {
-                        simulate_ptr[j] = remapimage_ptr[j];
+                        if (map_x_ptr[j] >= 0 && map_y_ptr[j] >= 0 && map_x_ptr[j] <= mesh.teximage.cols && map_y_ptr[j] <= mesh.teximage.rows)
+                        {
+                            simulate_ptr[j] = remapimage_ptr[j];
+                        }
                     }
                 }
+            }
+            else if (mesh.teximage.channels() == 4)
+            {
+                for (int i = 0; i < image_height; i++)
+                {
+                    const auto& map_x_ptr = map_x.ptr<float>(i);
+                    const auto& map_y_ptr = map_y.ptr<float>(i);
+                    const auto& remapimage_ptr = remapimage.ptr<cv::Vec4b>(i);
+                    const auto& simulate_ptr = result.simulate.ptr<cv::Vec3b>(i);
+                    for (int j = 0; j < image_width; j++)
+                    {
+                        if (map_x_ptr[j] >= 0 && map_y_ptr[j] >= 0 && map_x_ptr[j] <= mesh.teximage.cols && map_y_ptr[j] <= mesh.teximage.rows)
+                        {
+                            float alpha = remapimage_ptr[j][3]/255.0f;
+                            simulate_ptr[j][0] = simulate_ptr[j][0] * (1.0f - alpha) + alpha*remapimage_ptr[j][0];
+                            simulate_ptr[j][1] = simulate_ptr[j][1] * (1.0f - alpha) + alpha*remapimage_ptr[j][1];
+                            simulate_ptr[j][2] = simulate_ptr[j][2] * (1.0f - alpha) + alpha*remapimage_ptr[j][2];
+                        }
+                    }
+                }
+            }
+            else if (mesh.teximage.channels() == 1)
+            {
+                for (int i = 0; i < image_height; i++)
+                {
+                    const auto& map_x_ptr = map_x.ptr<float>(i);
+                    const auto& map_y_ptr = map_y.ptr<float>(i);
+                    const auto& remapimage_ptr = remapimage.ptr<uchar>(i);
+                    const auto& simulate_ptr = result.simulate.ptr<cv::Vec3b>(i);
+                    for (int j = 0; j < image_width; j++)
+                    {
+                        if (map_x_ptr[j] >= 0 && map_y_ptr[j] >= 0 && map_x_ptr[j] <= mesh.teximage.cols && map_y_ptr[j] <= mesh.teximage.rows)
+                        {
+                            simulate_ptr[j][0] = remapimage_ptr[j];
+                            simulate_ptr[j][1] = remapimage_ptr[j];
+                            simulate_ptr[j][2] = remapimage_ptr[j];
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Ruler::Logger::error("Texture is Null!\n");
             }
         }
         else
