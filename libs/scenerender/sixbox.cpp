@@ -82,7 +82,7 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
 
     // 冗余一个像素，保持边界过度的平滑
     float boxwidth_cxy = (boxwidth - 1) / 2.0, boxwidth_fxy = (boxwidth - 1) / 2.0;;
-    float pixel_per_angle = panoheight / CV_PI, angle_per_pixel = CV_PI / panoheight;
+    float pixel_per_angle = (panoheight - 1) / CV_PI, angle_per_pixel = CV_PI / (panoheight - 1);
 
 #pragma omp parallel for
     for (int k = 0; k < 6; k++)
@@ -160,7 +160,8 @@ cv::Mat Ruler::SixBox::convertSixBoxToPanorama(const cv::Mat& boximage)
     assert(boximage.cols == 6 * boxwidth_ && boximage.rows == boxwidth_);
 
     cv::Mat panoimage;
-    cv::remap(boximage, panoimage, map_pano_to_sixbox_x_, map_pano_to_sixbox_y_, CV_INTER_LANCZOS4);
+    //cv::remap(boximage, panoimage, map_pano_to_sixbox_x_, map_pano_to_sixbox_y_, CV_INTER_LANCZOS4);
+    cv::remap(boximage, panoimage, map_pano_to_sixbox_x_, map_pano_to_sixbox_y_, CV_INTER_LINEAR);
     return std::move(panoimage);
 }
 
@@ -244,6 +245,6 @@ cv::Mat Ruler::SixBox::convertPanoramaToSixBox(const cv::Mat& panoimage)
     assert(panoimage.cols == panowidth_ && panoimage.rows == panoheight_);
 
     cv::Mat boximage;
-    cv::remap(panoimage, boximage, map_sixbox_to_pano_x_, map_sixbox_to_pano_y_, CV_INTER_LANCZOS4);
+    cv::remap(panoimage, boximage, map_sixbox_to_pano_x_, map_sixbox_to_pano_y_, CV_INTER_LINEAR);
     return std::move(boximage);
 }
