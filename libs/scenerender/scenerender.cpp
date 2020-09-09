@@ -49,6 +49,7 @@ public:
     cv::Mat getPanoRecord();
     cv::Mat getPanoSimulate();
     cv::Mat getSixBoxDepth();
+    cv::Mat getSixBoxDistance();
     cv::Mat getSixBoxRecord();
     cv::Mat getSixBoxSimulate();
 
@@ -212,7 +213,7 @@ Ruler::SceneRenderImpl::~SceneRenderImpl()
 
 cv::Mat Ruler::SceneRenderImpl::getPanoDepth()
 {
-    return std::move(sixbox_.convertSixBoxToPanorama(getSixBoxDepth()));
+    return std::move(sixbox_.convertSixBoxToPanorama(getSixBoxDistance()));
 }
 
 cv::Mat Ruler::SceneRenderImpl::getPanoRecord()
@@ -231,6 +232,16 @@ cv::Mat Ruler::SceneRenderImpl::getSixBoxDepth()
     for (int i = 0; i < 6; i++)
     {
         result_array_[i].depth.convertTo(sixdepth.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_16U);
+    }
+    return std::move(sixdepth);
+}
+
+cv::Mat Ruler::SceneRenderImpl::getSixBoxDistance()
+{
+    cv::Mat sixdepth(boxwidth_, 6 * boxwidth_, CV_16U);
+    for (int i = 0; i < 6; i++)
+    {
+        sixbox_.convertBoxDepthToDistance(result_array_[i].depth, i).convertTo(sixdepth.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_16U);
     }
     return std::move(sixdepth);
 }

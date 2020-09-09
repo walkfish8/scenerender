@@ -28,6 +28,16 @@
 #include "logger.h"
 #include "omp.h"
 
+std::vector<cv::Mat> g_rotate_mats =
+{
+    (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1),
+    (cv::Mat_<double>(3, 3) << 0, 0, 1, 0, 1, 0, -1, 0, 0),
+    (cv::Mat_<double>(3, 3) << -1, 0, 0, 0, 1, 0, 0, 0, -1),
+    (cv::Mat_<double>(3, 3) << 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, 1, 0, -1, 0),
+    (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, -1, 0, 1, 0)
+};
+
 Ruler::SixBox::SixBox()
 {}
 
@@ -69,15 +79,6 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
     //std::vector<cv::Mat> rvecs = {
     //    (cv::Mat_<double>(3, 1) << 0, 0, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << 0, CV_PI, 0),
     //    (cv::Mat_<double>(3, 1) << 0, -CV_PI / 2.0, 0), (cv::Mat_<double>(3, 1) << -CV_PI / 2.0, 0, 0), (cv::Mat_<double>(3, 1) << CV_PI / 2.0, 0, 0) };
-    std::vector<cv::Mat> rotate_mats = 
-    {
-        (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1),
-        (cv::Mat_<double>(3, 3) << 0, 0, 1, 0, 1, 0, -1, 0, 0),
-        (cv::Mat_<double>(3, 3) << -1, 0, 0, 0, 1, 0, 0, 0, -1),
-        (cv::Mat_<double>(3, 3) << 0, 0, -1, 0, 1, 0, 1, 0, 0),
-        (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, 1, 0, -1, 0),
-        (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, -1, 0, 1, 0) 
-    };
 
     // 冗余一个像素，保持边界过度的平滑
     float boxwidth_cxy = (boxwidth - 1) / 2.0, boxwidth_fxy = (boxwidth - 1) / 2.0;;
@@ -86,7 +87,7 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
 #pragma omp parallel for
     for (int k = 0; k < 6; k++)
     {
-        cv::Mat R = R_offset*rotate_mats[k];
+        cv::Mat R = R_offset*g_rotate_mats[k];
 
 #pragma omp parallel for
         for (int i = 0; i < boxwidth; i++)
@@ -113,7 +114,7 @@ bool Ruler::SixBox::init(int boxwidth, int panowidth, int panoheight, const cv::
 #pragma omp parallel for
     for (int k = 0; k < 6; k++)
     {
-        cv::Mat R = (R_offset*rotate_mats[k]).t();
+        cv::Mat R = (R_offset*g_rotate_mats[k]).t();
         const auto& a0 = R.at<double>(0, 0); const auto& a1 = R.at<double>(0, 1); const auto& a2 = R.at<double>(0, 2);
         const auto& b0 = R.at<double>(1, 0); const auto& b1 = R.at<double>(1, 1); const auto& b2 = R.at<double>(1, 2);
         const auto& c0 = R.at<double>(2, 0); const auto& c1 = R.at<double>(2, 1); const auto& c2 = R.at<double>(2, 2);
@@ -161,6 +162,47 @@ cv::Mat Ruler::SixBox::convertSixBoxToPanorama(const cv::Mat& boximage)
     cv::Mat panoimage;
     cv::remap(boximage, panoimage, map_pano_to_sixbox_x_, map_pano_to_sixbox_y_, CV_INTER_LANCZOS4);
     return std::move(panoimage);
+}
+
+cv::Mat Ruler::SixBox::convertBoxDepthToDistance(const cv::Mat& boxdepth, int k)
+{
+    assert(boxdepth.cols == boxwidth_ && boxdepth.rows == boxwidth_ && k >= 0 && k < 6);
+
+    cv::Mat distimage = cv::Mat::zeros(boxdepth.rows, boxdepth.cols, CV_32F);
+
+    // 匿名函数，将XYZ向量转换成角度表示
+    auto convertXYZtoDist = [](float x0, float y0, float z0, float depth, const cv::Mat& R0)->cv::Point3f
+    {
+        //float x = R0.at<double>(0, 0)*x0 + R0.at<double>(0, 1)*y0 + R0.at<double>(0, 2)*z0;
+        //float y = R0.at<double>(1, 0)*x0 + R0.at<double>(1, 1)*y0 + R0.at<double>(1, 2)*z0;
+        //float z = R0.at<double>(2, 0)*x0 + R0.at<double>(2, 1)*y0 + R0.at<double>(2, 2)*z0;
+
+        //float x = x0*depth/z0;
+        //float y = y0*depth/z0;
+        //float z = depth;
+        //float r = sqrt(x*x + y*y + z*z);
+
+        // z cannot be zero, if true i want it be clear and the system can notify me;
+        return std::move(cv::Point3f(x0*depth / z0, y0*depth / z0, depth));
+    };
+
+    // 冗余一个像素，保持边界过度的平滑
+    float boxwidth_cxy = (boxwidth_ - 1) / 2.0, boxwidth_fxy = (boxwidth_ - 1) / 2.0;;
+    float pixel_per_angle = panoheight_ / CV_PI, angle_per_pixel = CV_PI / panoheight_;
+
+    cv::Mat R = g_rotate_mats[k];
+
+#pragma omp parallel for
+    for (int i = 0; i < boxwidth_; i++)
+    {
+        for (int j = 0; j < boxwidth_; j++)
+        {
+            auto point = convertXYZtoDist((i - boxwidth_cxy) / boxwidth_fxy, (j - boxwidth_cxy) / boxwidth_fxy, 1.0, boxdepth.at<float>(j, i), R);
+            distimage.at<float>(j, i) = cv::norm(point);
+        }
+    }
+
+    return std::move(distimage);
 }
 
 cv::Mat Ruler::SixBox::convertSixBoxLabelToPanorama(const cv::Mat& boximage)

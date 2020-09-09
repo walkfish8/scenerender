@@ -48,6 +48,8 @@ public:
     cv::Mat convertSixBoxToPanorama(const cv::Mat& boximage);
     cv::Mat convertSixBoxLabelToPanorama(const cv::Mat& boximage);
 
+    cv::Mat convertBoxDepthToDistance(const cv::Mat& boxdepth, int k);
+
     // 将全景转换成六面体,依次为后左前右上下
     cv::Mat convertPanoramaToSixBox(const cv::Mat& panoimage);
 

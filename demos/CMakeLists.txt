@@ -1,3 +1,5 @@
 # Add modules
 ADD_SUBDIRECTORY(demo_panoviewer)
 ADD_SUBDIRECTORY(demo_scenerender)
+ADD_SUBDIRECTORY(demo_panotopano)
+ADD_SUBDIRECTORY(demo_vrviewer)
