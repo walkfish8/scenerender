@@ -29,7 +29,7 @@ void main()
 	sr.renderPanorama("..\\..\\..\\datas\\scene02\\全景图.jpg");
 	sr.renderTrimesh("..\\..\\..\\datas\\scene02\\obj\\500-1.obj", "", 0, true);
 	//sr.renderTrimesh("..\\..\\..\\datas\\scene02\\obj\\500-1.obj", "..\\..\\..\\datas\\scene02\\obj\\12.jpg", 0, true);
-	sr.renderRectangle("..\\..\\..\\datas\\scene02\\拖进去的图片.png", rectparam, 6.684f*scale / 2, 3.742f*scale / 2, 1, true);
+	sr.renderRectangle("..\\..\\..\\datas\\scene02\\拖进去的图片_高清.jpg", rectparam, 6.684f*scale / 2, 3.742f*scale / 2, 1, true);
 
     sr.savePanoSimulateImage("..\\..\\..\\datas\\scene02\\out\\panoimage.bmp");
     sr.savePanoDepthImage("..\\..\\..\\datas\\scene02\\out\\panodepth.png");
