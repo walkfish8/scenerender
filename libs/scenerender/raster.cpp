@@ -236,7 +236,7 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
         if (is_overlapped)
         {
             cv::Mat remapimage;
-            cv::remap(mesh.teximage, remapimage, map_x, map_y, cv::INTER_LINEAR);
+            cv::remap(mesh.teximage, remapimage, map_x, map_y, cv::INTER_CUBIC);
             if (mesh.teximage.channels() == 3)
             {
                 for (int i = 0; i < image_height; i++)
@@ -300,7 +300,7 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
         }
         else
         {
-            cv::remap(mesh.teximage, result.simulate, map_x, map_y, cv::INTER_LINEAR);
+            cv::remap(mesh.teximage, result.simulate, map_x, map_y, cv::INTER_CUBIC);
         }
     }
 }

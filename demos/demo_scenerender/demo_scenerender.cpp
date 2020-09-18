@@ -26,14 +26,15 @@ void main()
 	rectparam.SetTranslation(17.643327102396*scale, 2.017847887922609*scale, 2.373871050770903*scale);
 
 	Ruler::SceneRender sr(cameraparam, 4096, 9000, 4500);
-	sr.renderPanorama("..\\..\\..\\datas\\scene02\\全景图.jpg");
+	sr.renderSixBox("..\\..\\..\\datas\\scene02\\六面体.jpg");
+    //sr.renderPanorama("..\\..\\..\\datas\\scene02\\全景图.jpg");
 	sr.renderTrimesh("..\\..\\..\\datas\\scene02\\obj\\500-1.obj", "", 0, true);
 	//sr.renderTrimesh("..\\..\\..\\datas\\scene02\\obj\\500-1.obj", "..\\..\\..\\datas\\scene02\\obj\\12.jpg", 0, true);
 	sr.renderRectangle("..\\..\\..\\datas\\scene02\\拖进去的图片_高清.jpg", rectparam, 6.684f*scale / 2, 3.742f*scale / 2, 1, true);
 
-    sr.savePanoSimulateImage("..\\..\\..\\datas\\scene02\\out\\panoimage.bmp");
+    sr.savePanoSimulateImage("..\\..\\..\\datas\\scene02\\out\\panoimage.jpg");
     sr.savePanoDepthImage("..\\..\\..\\datas\\scene02\\out\\panodepth.png");
-    sr.saveSixBoxSimulateImage("..\\..\\..\\datas\\scene02\\out\\siximage.bmp");
+    sr.saveSixBoxSimulateImage("..\\..\\..\\datas\\scene02\\out\\siximage.jpg");
 
     sr.showPanoSimulateWithOpenGL();
 }

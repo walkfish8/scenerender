@@ -42,6 +42,7 @@ public:
     SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight);
     ~SceneRenderImpl();
 
+    void renderSix(const cv::Mat& siximage);
     void renderPano(const cv::Mat& panoimage);
     void renderMesh(const TriMesh& mesh, int recordLabel = 0);
 
@@ -70,6 +71,11 @@ SceneRender::SceneRender(const CameraD& param, int boxwidth, int panowidth, int 
 {}
 
 SceneRender::~SceneRender() { delete impl_ptr_; }
+
+void SceneRender::renderSixBox(const char* sixpath)
+{
+    impl_ptr_->renderSix(cv::imread(sixpath));
+}
 
 void SceneRender::renderPanorama(const char* panopath)
 {
@@ -291,6 +297,28 @@ void Ruler::SceneRenderImpl::renderPano(const cv::Mat& panoimage)
 {
     assert(panoimage.cols == panowidth_ && panoimage.rows == panoheight_);
     cv::Mat siximage = sixbox_.convertPanoramaToSixBox(panoimage);
+
+#pragma omp parallel for
+    for (int k = 0; k < 6; k++)
+    {
+        cv::Mat subimage = siximage.colRange(k*boxwidth_, (k + 1)*boxwidth_);
+        for (int i = 0; i < boxwidth_; i++)
+        {
+            const auto& subimage_ptr = subimage.ptr<cv::Vec3b>(i);
+            const auto& record_ptr = result_array_[k].record.ptr<int>(i);
+            const auto& simulate_ptr = result_array_[k].simulate.ptr<cv::Vec3b>(i);
+            for (int j = 0; j < boxwidth_; j++)
+            {
+                if (record_ptr[j] <= 0)
+                    simulate_ptr[j] = subimage_ptr[j];
+            }
+        }
+    }
+}
+
+void Ruler::SceneRenderImpl::renderSix(const cv::Mat& siximage)
+{
+    assert(siximage.cols == 6 * boxwidth_ && siximage.rows == boxwidth_);
 
 #pragma omp parallel for
     for (int k = 0; k < 6; k++)
