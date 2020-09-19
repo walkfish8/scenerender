@@ -43,6 +43,7 @@ public:
     ~SceneRenderImpl();
 
     void renderSix(const cv::Mat& siximage);
+	void renderSix(const cv::Mat siximage[6]);
     void renderPano(const cv::Mat& panoimage);
     void renderMesh(const TriMesh& mesh, int recordLabel = 0);
 
@@ -75,6 +76,15 @@ SceneRender::~SceneRender() { delete impl_ptr_; }
 void SceneRender::renderSixBox(const char* sixpath)
 {
     impl_ptr_->renderSix(cv::imread(sixpath));
+}
+
+void SceneRender::renderSixBox(const char* sixpath[6])
+{
+	cv::Mat siximage[6];
+	for (int i = 0; i < 6; ++i)
+		siximage[i] = cv::imread(sixpath[i]);
+
+	impl_ptr_->renderSix(siximage);
 }
 
 void SceneRender::renderPanorama(const char* panopath)
@@ -336,4 +346,31 @@ void Ruler::SceneRenderImpl::renderSix(const cv::Mat& siximage)
             }
         }
     }
+}
+
+void Ruler::SceneRenderImpl::renderSix(const cv::Mat siximage[6])
+{
+#pragma omp parallel for
+	for (int k = 0; k < 6; k++)
+	{
+		if (siximage[k].cols == boxwidth_ && siximage[k].rows == boxwidth_)
+		{
+			const cv::Mat& subimage = siximage[k];
+			for (int i = 0; i < boxwidth_; i++)
+			{
+				const auto& subimage_ptr = subimage.ptr<cv::Vec3b>(i);
+				const auto& record_ptr = result_array_[k].record.ptr<int>(i);
+				const auto& simulate_ptr = result_array_[k].simulate.ptr<cv::Vec3b>(i);
+				for (int j = 0; j < boxwidth_; j++)
+				{
+					if (record_ptr[j] <= 0)
+						simulate_ptr[j] = subimage_ptr[j];
+				}
+			}
+		}
+		else
+		{
+			Ruler::Logger::error("size of image for index %d wrong!\n", k);
+		}
+	}
 }

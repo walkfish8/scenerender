@@ -25,12 +25,21 @@ void main()
 	rectparam.SetQuaternionRotation(-0.00000030064244437350754, 0.30029866609612915, 0.00000009465112657261254, 0.9538452238915841);
 	rectparam.SetTranslation(17.643327102396*scale, 2.017847887922609*scale, 2.373871050770903*scale);
 
+	const char* sixpath[6] = {
+		"..\\..\\..\\datas\\scene02\\六面体_0.jpg",
+		"..\\..\\..\\datas\\scene02\\六面体_1.jpg",
+		"..\\..\\..\\datas\\scene02\\六面体_2.jpg",
+		"..\\..\\..\\datas\\scene02\\六面体_3.jpg",
+		"..\\..\\..\\datas\\scene02\\六面体_4.jpg",
+		"..\\..\\..\\datas\\scene02\\六面体_5.jpg" };
+
 	Ruler::SceneRender sr(cameraparam, 4096, 9000, 4500);
-	sr.renderSixBox("..\\..\\..\\datas\\scene02\\六面体.jpg");
+	sr.renderSixBox(sixpath);
+	//sr.renderSixBox("..\\..\\..\\datas\\scene02\\六面体.jpg");
     //sr.renderPanorama("..\\..\\..\\datas\\scene02\\全景图.jpg");
 	sr.renderTrimesh("..\\..\\..\\datas\\scene02\\obj\\500-1.obj", "", 0, true);
 	//sr.renderTrimesh("..\\..\\..\\datas\\scene02\\obj\\500-1.obj", "..\\..\\..\\datas\\scene02\\obj\\12.jpg", 0, true);
-	sr.renderRectangle("..\\..\\..\\datas\\scene02\\拖进去的图片_高清.jpg", rectparam, 6.684f*scale / 2, 3.742f*scale / 2, 1, true);
+	sr.renderRectangle("..\\..\\..\\datas\\scene02\\拖进去的图片.png", rectparam, 6.684f*scale / 2, 3.742f*scale / 2, 1, true);
 
     sr.savePanoSimulateImage("..\\..\\..\\datas\\scene02\\out\\panoimage.jpg");
     sr.savePanoDepthImage("..\\..\\..\\datas\\scene02\\out\\panodepth.png");

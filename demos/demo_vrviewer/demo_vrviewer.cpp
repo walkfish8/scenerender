@@ -75,6 +75,16 @@ void RotatePanoImage(cv::InputArray inarr, cv::InputArray Rarr, cv::OutputArray&
 
 void main()
 {
+	// //切分六面体
+	//char tmp[255];
+	//cv::Mat siximage = cv::imread("..\\..\\..\\datas\\scene02\\六面体.jpg");
+	//for (int i = 0; i < 6; ++i)
+	//{
+	//	sprintf(tmp, "..\\..\\..\\datas\\scene02\\六面体_%d.jpg", i);
+	//	cv::imwrite(tmp, siximage.colRange(i*siximage.rows, (i + 1)*siximage.rows));
+	//}
+	//return;
+
     cv::Mat Rmat = cv::Mat::eye(3, 3, CV_64F);
     cv::Mat rvec = (cv::Mat_<double>(3, 1) << 0.3, 0.2, 0.5);
     cv::Rodrigues(rvec, Rmat);
