@@ -71,7 +71,7 @@ void Ruler::TriMesh::getAdjacencyFaces(Index face_index,
     adjacency_faces.erase(unique(adjacency_faces.begin(), adjacency_faces.end()), adjacency_faces.end());
 }
 
-bool Ruler::TriMesh::loadOBJ(const std::string& obj_path, bool is_rotate_axis)
+bool Ruler::TriMesh::loadOBJ(const std::string& obj_path, bool is_rotate_axis, float scale)
 {
     this->clear();
     std::ifstream fs(obj_path.c_str(), std::ios::in);
@@ -92,7 +92,8 @@ bool Ruler::TriMesh::loadOBJ(const std::string& obj_path, bool is_rotate_axis)
         if (keyword == "v")
         {
             in >> x >> y >> z;
-            vertices.push_back(is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z));
+            //vertices.push_back(is_rotate_axis ? cv::Point3f(x, -z, y) : cv::Point3f(x, y, z));
+            vertices.push_back(is_rotate_axis ? cv::Point3f(x * scale, -z * scale, y*scale) : cv::Point3f(x * scale, y * scale, z * scale));
         }
         else if (keyword == "vt")
         {

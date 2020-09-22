@@ -44,7 +44,7 @@ public:
     void renderSixBox(const char* sixpath);
 	void renderSixBox(const char* sixpath[6]);
     void renderPanorama(const char* panopath);
-    void renderTrimesh(const char* objpath, const char* imgpath = "", int record_label = 0, bool is_rotate_axis = false);
+    void renderTrimesh(const char* objpath, const char* imgpath = "", int record_label = 0, bool is_rotate_axis = false, float scale = 1.0);
     void renderRectangle(const char* imgpath, const CameraD& param, float rectw, float recth, int record_label = 1, bool is_rotate_axis = false);
 
     void savePanoDepthImage(const char* imgpath);

@@ -60,7 +60,7 @@ public:
     /*
     加载OBJ数据，暂不读取材质文件
     */
-    bool loadOBJ(const std::string& obj_path, bool is_rotate_axis = false);
+    bool loadOBJ(const std::string& obj_path, bool is_rotate_axis = false, float scale = 1.0f);
     bool saveOBJ(const std::string& obj_path);
     bool loadTexture(const std::string& tex_path);
 

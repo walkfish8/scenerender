@@ -92,10 +92,10 @@ void SceneRender::renderPanorama(const char* panopath)
     impl_ptr_->renderPano(cv::imread(panopath));
 }
 
-void SceneRender::renderTrimesh(const char* objpath, const char* imgpath, int record_label, bool is_rotate_axis)
+void SceneRender::renderTrimesh(const char* objpath, const char* imgpath, int record_label, bool is_rotate_axis, float scale)
 {
     Ruler::TriMesh mesh;
-    mesh.loadOBJ(objpath, is_rotate_axis);
+    mesh.loadOBJ(objpath, is_rotate_axis, scale);
     mesh.loadTexture(imgpath);
     impl_ptr_->renderMesh(mesh, record_label);
 }

@@ -39,6 +39,12 @@ if(OpenCV_FOUND)
 SET(_USE_OPENCV TRUE)
 	include_directories(${OpenCV_INCLUDE_DIRS})
 	add_definitions(${OpenCV_DEFINITIONS})
+	
+	# fix bug of opencv depend libaries
+	set(opencv_depend_libs zlib libjpeg-turbo libtiff libwebp libjasper libpng IlmImf ippiw libprotobuf quirc ittnotify)
+	set_target_properties(${opencv_depend_libs} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
+	set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
+	
 	message(STATUS "OpenCV ${OpenCV_VERSION} found (include: ${OpenCV_INCLUDE_DIRS})")
 else()
 	message("-- Can't find OpenCV. Please specify OpenCV directory using OpenCV_DIR variable")
