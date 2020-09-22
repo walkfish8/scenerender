@@ -110,10 +110,10 @@ void SceneRender::renderRectangle(const char* imgpath, const CameraD& param, flo
     float tx = param.t[0]; float ty = param.t[1]; float tz = param.t[2];
 
     float x(0), y(0), z(0);
-    cv::Point3f point_lt = cv::Point3f(-rectw / 2.0f, recth / 2.0f, 0.0f);
-    cv::Point3f point_rt = cv::Point3f(rectw / 2.0f, recth / 2.0f, 0.0f);
-    cv::Point3f point_rb = cv::Point3f(rectw / 2.0f, -recth / 2.0f, 0.0f);
-    cv::Point3f point_lb = cv::Point3f(-rectw / 2.0f, -recth / 2.0f, 0.0f);
+    cv::Point3f point_lt = cv::Point3f(-rectw / 2.0f, recth / 2.0f, 1e-5);
+    cv::Point3f point_rt = cv::Point3f(rectw / 2.0f, recth / 2.0f, 1e-5);
+    cv::Point3f point_rb = cv::Point3f(rectw / 2.0f, -recth / 2.0f, 1e-5);
+    cv::Point3f point_lb = cv::Point3f(-rectw / 2.0f, -recth / 2.0f, 1e-5);
 
     x = a0*point_lt.x + a1*point_lt.y + a2*point_lt.z + tx;
     y = b0*point_lt.x + b1*point_lt.y + b2*point_lt.z + ty;
