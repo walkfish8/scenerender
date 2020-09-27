@@ -52,11 +52,11 @@ public:
     void renderPano(const cv::Mat& panoimage);
     void renderMesh(const TriMesh& mesh, int recordLabel = 0);
 
-    cv::Mat getPanoDepth();
+    cv::Mat getPanoDepth(float scale = 1.0f);
     cv::Mat getPanoRecord();
     cv::Mat getPanoSimulate();
-    cv::Mat getSixBoxDepth();
-    cv::Mat getSixBoxDistance();
+    cv::Mat getSixBoxDepth(float scale = 1.0f);
+    cv::Mat getSixBoxDistance(float scale = 1.0f);
     cv::Mat getSixBoxRecord();
     cv::Mat getSixBoxSimulate();
 
@@ -165,9 +165,9 @@ void SceneRender::renderRectangle(const char* imgpath, const CameraD& param, flo
         impl_ptr_->renderMesh(mesh, record_label);
 }
 
-void SceneRender::savePanoDepthImage(const char* imgpath)
+void SceneRender::savePanoDepthImage(const char* imgpath, float scale)
 {
-    cv::imwrite(imgpath, impl_ptr_->getPanoDepth());
+    cv::imwrite(imgpath, impl_ptr_->getPanoDepth(scale));
 }
 
 void SceneRender::savePanoRecordImage(const char* imgpath)
@@ -180,9 +180,9 @@ void SceneRender::savePanoSimulateImage(const char* imgpath)
     cv::imwrite(imgpath, impl_ptr_->getPanoSimulate());
 }
 
-void SceneRender::saveSixBoxDepthImage(const char* imgpath)
+void SceneRender::saveSixBoxDepthImage(const char* imgpath, float scale)
 {
-    cv::imwrite(imgpath, impl_ptr_->getSixBoxDepth());
+    cv::imwrite(imgpath, impl_ptr_->getSixBoxDepth(scale));
 }
 
 void SceneRender::saveSixBoxRecordImage(const char* imgpath)
@@ -255,9 +255,9 @@ void Ruler::SceneRenderImpl::setCameraParam(const CameraD& param)
     RT_ = RT_.inv();
 }
 
-cv::Mat Ruler::SceneRenderImpl::getPanoDepth()
+cv::Mat Ruler::SceneRenderImpl::getPanoDepth(float scale)
 {
-    return std::move(sixbox_.convertSixBoxToPanorama(getSixBoxDistance()));
+    return std::move(sixbox_.convertSixBoxToPanorama(getSixBoxDistance(scale)));
 }
 
 cv::Mat Ruler::SceneRenderImpl::getPanoRecord()
@@ -270,22 +270,22 @@ cv::Mat Ruler::SceneRenderImpl::getPanoSimulate()
     return std::move(sixbox_.convertSixBoxToPanorama(getSixBoxSimulate()));
 }
 
-cv::Mat Ruler::SceneRenderImpl::getSixBoxDepth()
+cv::Mat Ruler::SceneRenderImpl::getSixBoxDepth(float scale)
 {
     cv::Mat sixdepth(boxwidth_, 6 * boxwidth_, CV_16U);
     for (int i = 0; i < 6; i++)
     {
-        result_array_[i].depth.convertTo(sixdepth.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_16U);
+        result_array_[i].depth.convertTo(sixdepth.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_16U, scale);
     }
     return std::move(sixdepth);
 }
 
-cv::Mat Ruler::SceneRenderImpl::getSixBoxDistance()
+cv::Mat Ruler::SceneRenderImpl::getSixBoxDistance(float scale)
 {
     cv::Mat sixdepth(boxwidth_, 6 * boxwidth_, CV_16U);
     for (int i = 0; i < 6; i++)
     {
-        sixbox_.convertBoxDepthToDistance(result_array_[i].depth, i).convertTo(sixdepth.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_16U);
+        sixbox_.convertBoxDepthToDistance(result_array_[i].depth, i).convertTo(sixdepth.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_16U, scale);
     }
     return std::move(sixdepth);
 }

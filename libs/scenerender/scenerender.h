@@ -52,11 +52,11 @@ public:
     void renderTrimesh(const char* objpath, const char* imgpath = "", int record_label = 0, bool is_rotate_axis = false, float scale = 1.0);
     void renderRectangle(const char* imgpath, const CameraD& param, float rectw, float recth, int record_label = 1, bool is_rotate_axis = false);
 
-    void savePanoDepthImage(const char* imgpath);
+    void savePanoDepthImage(const char* imgpath, float scale = 1.0f);
     void savePanoRecordImage(const char* imgpath);
     void savePanoSimulateImage(const char* imgpath);
 
-    void saveSixBoxDepthImage(const char* imgpath);
+    void saveSixBoxDepthImage(const char* imgpath, float scale = 1.0f);
     void saveSixBoxRecordImage(const char* imgpath);
     void saveSixBoxSimulateImage(const char* imgpath);
 

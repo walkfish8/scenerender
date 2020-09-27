@@ -118,10 +118,10 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
 
         if (flag_number == 3)
         {
-            minx = std::max(static_cast<int>(std::min(std::min(imgp1.x, imgp2.x), imgp3.x)), 0);
-            miny = std::max(static_cast<int>(std::min(std::min(imgp1.y, imgp2.y), imgp3.y)), 0);
-            maxx = std::min(static_cast<int>(std::max(std::max(imgp1.x, imgp2.x), imgp3.x)), image_width - 1);
-            maxy = std::min(static_cast<int>(std::max(std::max(imgp1.y, imgp2.y), imgp3.y)), image_height - 1);
+            minx = static_cast<int>(std::max(std::min(std::min(imgp1.x, imgp2.x), imgp3.x), 0.0));
+            miny = static_cast<int>(std::max(std::min(std::min(imgp1.y, imgp2.y), imgp3.y), 0.0));
+            maxx = static_cast<int>(std::min(std::max(std::max(imgp1.x, imgp2.x), imgp3.x), image_width - 1.0));
+            maxy = static_cast<int>(std::min(std::max(std::max(imgp1.y, imgp2.y), imgp3.y), image_height - 1.0));
         }
         else if (flag_number == 2)
         {
@@ -146,10 +146,10 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
             const cv::Point2d& intersect_uv2 = image_points[ids[valid_ind0]];
             const cv::Point2d& intersect_uv3 = image_points[ids[valid_ind1]];
 
-            minx = std::max(static_cast<int>(std::min(std::min(std::min(intersect_uv0.x, intersect_uv1.x), intersect_uv2.x), intersect_uv3.x)), 0);
-            miny = std::max(static_cast<int>(std::min(std::min(std::min(intersect_uv0.y, intersect_uv1.y), intersect_uv2.y), intersect_uv3.y)), 0);
-            maxx = std::min(static_cast<int>(std::max(std::max(std::max(intersect_uv0.x, intersect_uv1.x), intersect_uv2.x), intersect_uv3.x)), image_width - 1);
-            maxy = std::min(static_cast<int>(std::max(std::max(std::max(intersect_uv0.y, intersect_uv1.y), intersect_uv2.y), intersect_uv3.y)), image_height - 1);
+            minx = static_cast<int>(std::max(std::min(std::min(std::min(intersect_uv0.x, intersect_uv1.x), intersect_uv2.x), intersect_uv3.x), 0.0));
+            miny = static_cast<int>(std::max(std::min(std::min(std::min(intersect_uv0.y, intersect_uv1.y), intersect_uv2.y), intersect_uv3.y), 0.0));
+            maxx = static_cast<int>(std::min(std::max(std::max(std::max(intersect_uv0.x, intersect_uv1.x), intersect_uv2.x), intersect_uv3.x), image_width - 1.0));
+            maxy = static_cast<int>(std::min(std::max(std::max(std::max(intersect_uv0.y, intersect_uv1.y), intersect_uv2.y), intersect_uv3.y), image_height - 1.0));
 
         }
         else if (flag_number == 1)
@@ -174,18 +174,20 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
             cv::Point2d intersect_uv1 = cv::Point2d(intersect_pt1.x > 0 ? g_max_value : -g_max_value, intersect_pt1.y > 0 ? g_max_value : -g_max_value);
             const cv::Point2d& intersect_uv2 = image_points[ids[valid_ind]];
 
-            minx = std::max(static_cast<int>(std::min(std::min(intersect_uv0.x, intersect_uv1.x), intersect_uv2.x)), 0);
-            miny = std::max(static_cast<int>(std::min(std::min(intersect_uv0.y, intersect_uv1.y), intersect_uv2.y)), 0);
-            maxx = std::min(static_cast<int>(std::max(std::max(intersect_uv0.x, intersect_uv1.x), intersect_uv2.x)), image_width - 1);
-            maxy = std::min(static_cast<int>(std::max(std::max(intersect_uv0.y, intersect_uv1.y), intersect_uv2.y)), image_height - 1);
+            minx = static_cast<int>(std::max(std::min(std::min(intersect_uv0.x, intersect_uv1.x), intersect_uv2.x), 0.0));
+            miny = static_cast<int>(std::max(std::min(std::min(intersect_uv0.y, intersect_uv1.y), intersect_uv2.y), 0.0));
+            maxx = static_cast<int>(std::min(std::max(std::max(intersect_uv0.x, intersect_uv1.x), intersect_uv2.x), image_width - 1.0));
+            maxy = static_cast<int>(std::min(std::max(std::max(intersect_uv0.y, intersect_uv1.y), intersect_uv2.y), image_height - 1.0));
         }
         else
         {
             // do nothing!
-            //continue;
         }
 
-        //printf("face_index : %04d, minx : %04d, maxx : %04d, miny : %04d, maxy : %04d\n", face_index, minx, maxx, miny, maxy);
+        minx = std::max(minx, 0);
+        miny = std::max(miny, 0);
+        maxx = std::min(maxx, image_width - 1);
+        maxy = std::min(maxy, image_height - 1);
 
         cv::Point3d mv0 = mp2 - mp0;
         cv::Point3d mv1 = mp1 - mp0;

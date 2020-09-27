@@ -36,8 +36,8 @@ void main()
 
     char tmp[256];
     Ruler::CameraD cameraparam;
-    Ruler::SceneRender sr(cameraparam, 1024, 9000, 4500);
-    for (int index = 34; index < root.size(); ++index)
+    Ruler::SceneRender sr(cameraparam, 1024, 3216, 1608);
+    for (int index = 40; index < root.size(); ++index)
     {
         cameraparam.SetQuaternionRotation(
             root[index]["rotation"]["x"].asDouble(),
@@ -84,6 +84,9 @@ void main()
 
         sprintf_s(tmp, "%s\\%02d.jpg", out_dir.c_str(), index);
         sr.savePanoSimulateImage(tmp);
+
+        sprintf_s(tmp, "%s\\%02d.png", out_dir.c_str(), index);
+        sr.savePanoDepthImage(tmp, 1000.0f);
     }
 
     return;

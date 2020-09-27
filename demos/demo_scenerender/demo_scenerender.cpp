@@ -34,7 +34,7 @@ void main()
         "..\\..\\..\\datas\\scene02\\六面体_4.jpg",
         "..\\..\\..\\datas\\scene02\\六面体_5.jpg" };
 
-    Ruler::SceneRender sr(cameraparam, 1024, 9000, 4500);
+    Ruler::SceneRender sr(cameraparam, 4096, 9000, 4500);
     sr.clearDepthAndImage();
     sr.renderSixBox(sixpath);
     //sr.renderSixBox("..\\..\\..\\datas\\scene02\\六面体.jpg");
@@ -44,7 +44,7 @@ void main()
     sr.renderRectangle("..\\..\\..\\datas\\scene02\\拖进去的图片.png", rectparam, 6.684f*scale / 2, 3.742f*scale / 2, 1, true);
 
     sr.savePanoSimulateImage("..\\..\\..\\datas\\scene02\\out\\panoimage.jpg");
-    sr.savePanoDepthImage("..\\..\\..\\datas\\scene02\\out\\panodepth.png");
+    sr.savePanoDepthImage("..\\..\\..\\datas\\scene02\\out\\panodepth.png", 1.0f);
     sr.saveSixBoxSimulateImage("..\\..\\..\\datas\\scene02\\out\\siximage.jpg");
 
  //   cameraparam.SetQuaternionRotation(0.0, 0.0, 0.7071067811865475, 0.7071067811865476);
