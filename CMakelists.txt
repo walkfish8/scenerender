@@ -50,6 +50,8 @@ else()
 	message("-- Can't find OpenCV. Please specify OpenCV directory using OpenCV_DIR variable")
 endif()
 
+add_subdirectory(3rdparty)
+
 include_directories("${PROJECT_SOURCE_DIR}/3rdparty/vld/include")
 set(VLD_LIBS "${PROJECT_SOURCE_DIR}/3rdparty/vld/lib/Win64/vld.lib")
 add_definitions(-DVLD_DECL=)

@@ -36,7 +36,7 @@ namespace Ruler
 class SCENERENDER_EXPORT SixBox
 {
 public:
-    SixBox();
+    //SixBox();
     ~SixBox();
 
     SixBox(int boxwidth, int panowidth, int panoheight, const cv::Mat& R_offset = cv::Mat::eye(3, 3, CV_64F));
@@ -58,6 +58,9 @@ private:
     cv::Mat map_pano_to_sixbox_x_, map_pano_to_sixbox_y_; // 全景到六面体的映射
 
     int boxwidth_, panowidth_, panoheight_;
+
+    // 辅助
+    std::vector<cv::Mat> g_rotate_mats;
 };
 
 } // namspace Ruler

@@ -44,6 +44,9 @@ public:
 
     void clearDepthAndImage();
 
+    // 重设相机参数
+    void setCameraParam(const CameraD& param);
+
     void renderSix(const cv::Mat& siximage);
 	void renderSix(const cv::Mat siximage[6]);
     void renderPano(const cv::Mat& panoimage);
@@ -78,6 +81,11 @@ SceneRender::~SceneRender() { delete impl_ptr_; }
 void SceneRender::clearDepthAndImage()
 {
     impl_ptr_->clearDepthAndImage();
+}
+
+void SceneRender::setCameraParam(const CameraD& param)
+{
+    impl_ptr_->setCameraParam(param);
 }
 
 void SceneRender::renderSixBox(const char* sixpath)
@@ -152,9 +160,9 @@ void SceneRender::renderRectangle(const char* imgpath, const CameraD& param, flo
     mesh.faces[1].vertices[0] = mesh.faces[1].texcoords[0] = 1;
     mesh.faces[1].vertices[1] = mesh.faces[1].texcoords[1] = 2;
     mesh.faces[1].vertices[2] = mesh.faces[1].texcoords[2] = 3;
-    mesh.loadTexture(imgpath);
 
-    impl_ptr_->renderMesh(mesh, record_label);
+    if(mesh.loadTexture(imgpath))
+        impl_ptr_->renderMesh(mesh, record_label);
 }
 
 void SceneRender::savePanoDepthImage(const char* imgpath)
@@ -195,7 +203,7 @@ void SceneRender::showPanoSimulateWithOpenGL()
 } // namespace Ruler
 
 Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight) 
-    : boxwidth_(boxwidth), panowidth_(panowidth), panoheight_(panoheight)
+    : boxwidth_(boxwidth), panowidth_(panowidth), panoheight_(panoheight), sixbox_(boxwidth, panowidth, panoheight)
 {
     Ruler::Timer::tic();
     Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_DEBUG);
@@ -221,13 +229,7 @@ Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int 
     float half_boxwidth = (boxwidth - 1.0f) / 2.0f;
     K_ = (cv::Mat_<double>(3, 3) << half_boxwidth, 0, half_boxwidth, 0, half_boxwidth, half_boxwidth, 0, 0, 1);
 
-    RT_ = cv::Mat::eye(4, 4, CV_64F);
-    RT_.at<double>(0, 0) = param.m[0][0]; RT_.at<double>(0, 1) = param.m[0][1]; RT_.at<double>(0, 2) = param.m[0][2]; RT_.at<double>(0, 3) = param.t[0];
-    RT_.at<double>(1, 0) = param.m[1][0]; RT_.at<double>(1, 1) = param.m[1][1]; RT_.at<double>(1, 2) = param.m[1][2]; RT_.at<double>(1, 3) = param.t[1];
-    RT_.at<double>(2, 0) = param.m[2][0]; RT_.at<double>(2, 1) = param.m[2][1]; RT_.at<double>(2, 2) = param.m[2][2]; RT_.at<double>(2, 3) = param.t[2];
-    RT_ = RT_.inv();
-
-    sixbox_ = Ruler::SixBox(boxwidth, panowidth, panoheight);
+    setCameraParam(param);
     Ruler::Logger::info("initialize finished..., elapsed %fs\n", Ruler::Timer::toc());
 }
 
@@ -242,6 +244,15 @@ void Ruler::SceneRenderImpl::clearDepthAndImage()
         result_array_[k].record = -cv::Mat::ones(boxwidth_, boxwidth_, CV_32S);
         result_array_[k].simulate = cv::Mat::zeros(boxwidth_, boxwidth_, CV_8UC3);
     }
+}
+
+void Ruler::SceneRenderImpl::setCameraParam(const CameraD& param)
+{
+    RT_ = cv::Mat::eye(4, 4, CV_64F);
+    RT_.at<double>(0, 0) = param.m[0][0]; RT_.at<double>(0, 1) = param.m[0][1]; RT_.at<double>(0, 2) = param.m[0][2]; RT_.at<double>(0, 3) = param.t[0];
+    RT_.at<double>(1, 0) = param.m[1][0]; RT_.at<double>(1, 1) = param.m[1][1]; RT_.at<double>(1, 2) = param.m[1][2]; RT_.at<double>(1, 3) = param.t[1];
+    RT_.at<double>(2, 0) = param.m[2][0]; RT_.at<double>(2, 1) = param.m[2][1]; RT_.at<double>(2, 2) = param.m[2][2]; RT_.at<double>(2, 3) = param.t[2];
+    RT_ = RT_.inv();
 }
 
 cv::Mat Ruler::SceneRenderImpl::getPanoDepth()

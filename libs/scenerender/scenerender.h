@@ -43,6 +43,9 @@ public:
 
     void clearDepthAndImage();
 
+    // 重设相机参数
+    void setCameraParam(const CameraD& param);
+
     void renderSixBox(const char* sixpath);
 	void renderSixBox(const char* sixpath[6]);
     void renderPanorama(const char* panopath);

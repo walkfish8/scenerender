@@ -28,24 +28,32 @@
 #include "logger.h"
 #include "omp.h"
 
-std::vector<cv::Mat> g_rotate_mats =
-{
-    (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1),
-    (cv::Mat_<double>(3, 3) << 0, 0, 1, 0, 1, 0, -1, 0, 0),
-    (cv::Mat_<double>(3, 3) << -1, 0, 0, 0, 1, 0, 0, 0, -1),
-    (cv::Mat_<double>(3, 3) << 0, 0, -1, 0, 1, 0, 1, 0, 0),
-    (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, 1, 0, -1, 0),
-    (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, -1, 0, 1, 0)
-};
+//static std::vector<cv::Mat> g_rotate_mats =
+//{
+//    (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1),
+//    (cv::Mat_<double>(3, 3) << 0, 0, 1, 0, 1, 0, -1, 0, 0),
+//    (cv::Mat_<double>(3, 3) << -1, 0, 0, 0, 1, 0, 0, 0, -1),
+//    (cv::Mat_<double>(3, 3) << 0, 0, -1, 0, 1, 0, 1, 0, 0),
+//    (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, 1, 0, -1, 0),
+//    (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, -1, 0, 1, 0)
+//};
 
-Ruler::SixBox::SixBox()
-{}
+//Ruler::SixBox::SixBox()
+//{}
 
 Ruler::SixBox::~SixBox()
 {}
 
 Ruler::SixBox::SixBox(int boxwidth, int panowidth, int panoheight, const cv::Mat& R_offset)
 {
+    g_rotate_mats = {
+        (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        (cv::Mat_<double>(3, 3) << 0, 0, 1, 0, 1, 0, -1, 0, 0),
+        (cv::Mat_<double>(3, 3) << -1, 0, 0, 0, 1, 0, 0, 0, -1),
+        (cv::Mat_<double>(3, 3) << 0, 0, -1, 0, 1, 0, 1, 0, 0),
+        (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, 1, 0, -1, 0),
+        (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 0, -1, 0, 1, 0)
+    };
     init(boxwidth, panowidth, panoheight, R_offset);
 }
 

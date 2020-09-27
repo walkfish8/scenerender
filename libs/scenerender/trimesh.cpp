@@ -146,7 +146,7 @@ bool Ruler::TriMesh::loadOBJ(const std::string& obj_path, bool is_rotate_axis, f
 bool Ruler::TriMesh::loadTexture(const std::string& tex_path)
 {
     teximage = cv::imread(tex_path, cv::IMREAD_UNCHANGED);
-    return true;
+    return !teximage.empty();
 }
 
 bool Ruler::TriMesh::saveOBJ(const std::string& obj_path)
