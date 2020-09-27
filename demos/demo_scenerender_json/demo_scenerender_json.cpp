@@ -37,7 +37,7 @@ void main()
     char tmp[256];
     Ruler::CameraD cameraparam;
     Ruler::SceneRender sr(cameraparam, 1024, 3216, 1608);
-    for (int index = 40; index < root.size(); ++index)
+    for (int index = 0; index < root.size(); ++index)
     {
         cameraparam.SetQuaternionRotation(
             root[index]["rotation"]["x"].asDouble(),
