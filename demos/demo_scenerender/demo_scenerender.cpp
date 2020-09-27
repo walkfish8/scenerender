@@ -35,6 +35,7 @@ void main()
         "..\\..\\..\\datas\\scene02\\六面体_5.jpg" };
 
     Ruler::SceneRender sr(cameraparam, 4096, 9000, 4500);
+    sr.clearDepthAndImage();
     sr.renderSixBox(sixpath);
     //sr.renderSixBox("..\\..\\..\\datas\\scene02\\六面体.jpg");
     //sr.renderPanorama("..\\..\\..\\datas\\scene02\\全景图.jpg");

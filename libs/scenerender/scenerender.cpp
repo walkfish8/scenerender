@@ -42,6 +42,8 @@ public:
     SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight);
     ~SceneRenderImpl();
 
+    void clearDepthAndImage();
+
     void renderSix(const cv::Mat& siximage);
 	void renderSix(const cv::Mat siximage[6]);
     void renderPano(const cv::Mat& panoimage);
@@ -72,6 +74,11 @@ SceneRender::SceneRender(const CameraD& param, int boxwidth, int panowidth, int 
 {}
 
 SceneRender::~SceneRender() { delete impl_ptr_; }
+
+void SceneRender::clearDepthAndImage()
+{
+    impl_ptr_->clearDepthAndImage();
+}
 
 void SceneRender::renderSixBox(const char* sixpath)
 {
@@ -226,6 +233,16 @@ Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int 
 
 Ruler::SceneRenderImpl::~SceneRenderImpl()
 {}
+
+void Ruler::SceneRenderImpl::clearDepthAndImage()
+{
+    for (int k = 0; k < 6; k++)
+    {
+        result_array_[k].depth = cv::Mat::zeros(boxwidth_, boxwidth_, CV_32F);
+        result_array_[k].record = -cv::Mat::ones(boxwidth_, boxwidth_, CV_32S);
+        result_array_[k].simulate = cv::Mat::zeros(boxwidth_, boxwidth_, CV_8UC3);
+    }
+}
 
 cv::Mat Ruler::SceneRenderImpl::getPanoDepth()
 {

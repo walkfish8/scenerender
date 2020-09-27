@@ -41,6 +41,8 @@ public:
     SceneRender(const CameraD& param, int boxwidth, int panowidth, int panoheight);
     ~SceneRender();
 
+    void clearDepthAndImage();
+
     void renderSixBox(const char* sixpath);
 	void renderSixBox(const char* sixpath[6]);
     void renderPanorama(const char* panopath);
