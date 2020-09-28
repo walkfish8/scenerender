@@ -31,7 +31,6 @@
 #include "trimesh.h"
 #include "raster.h"
 #include "sixbox.h"
-#include "panoview.h"
 
 namespace Ruler
 {
@@ -195,10 +194,10 @@ void SceneRender::saveSixBoxSimulateImage(const char* imgpath)
     cv::imwrite(imgpath, impl_ptr_->getSixBoxSimulate());
 }
 
-void SceneRender::showPanoSimulateWithOpenGL()
-{
-    Ruler::PanoViewer::instance().show(impl_ptr_->getSixBoxSimulate(), "Panorama Viewer");
-}
+//void SceneRender::showPanoSimulateWithOpenGL()
+//{
+//    Ruler::PanoViewer::instance().show(impl_ptr_->getSixBoxSimulate(), "Panorama Viewer");
+//}
 
 } // namespace Ruler
 

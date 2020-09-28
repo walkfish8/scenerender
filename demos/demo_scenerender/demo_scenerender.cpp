@@ -76,5 +76,5 @@ void main()
  //   sr.saveSixBoxSimulateImage("..\\..\\..\\datas\\high\\out\\siximage.jpg");
  //   sr.saveSixBoxDepthImage("..\\..\\..\\datas\\high\\out\\sixdepth.png");
 
-    sr.showPanoSimulateWithOpenGL();
+    //sr.showPanoSimulateWithOpenGL();
 }
