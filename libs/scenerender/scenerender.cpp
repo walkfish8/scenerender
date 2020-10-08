@@ -194,6 +194,22 @@ void SceneRender::saveSixBoxSimulateImage(const char* imgpath)
     cv::imwrite(imgpath, impl_ptr_->getSixBoxSimulate());
 }
 
+void SceneRender::saveSixBoxSimulateImages(const char* imgdir)
+{
+     //ÇÐ·ÖÁùÃæÌå
+    char tmp[255];
+    std::string dir_path = imgdir;
+    dir_path = dir_path.at(dir_path.length() - 1) != '\\' ? dir_path + "\\" : dir_path;
+    cv::Mat siximage = impl_ptr_->getSixBoxSimulate();
+    for (int i = 0; i < 6; ++i)
+    {
+        sprintf(tmp, "%s%d.jpg", dir_path.c_str(), i);
+    	cv::imwrite(tmp, siximage.colRange(i*siximage.rows, (i + 1)*siximage.rows));
+    }
+    return;
+    //cv::imwrite(imgpath, impl_ptr_->getSixBoxSimulate());
+}
+
 //void SceneRender::showPanoSimulateWithOpenGL()
 //{
 //    Ruler::PanoViewer::instance().show(impl_ptr_->getSixBoxSimulate(), "Panorama Viewer");

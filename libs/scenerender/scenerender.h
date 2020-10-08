@@ -59,6 +59,7 @@ public:
     void saveSixBoxDepthImage(const char* imgpath, float scale = 1.0f);
     void saveSixBoxRecordImage(const char* imgpath);
     void saveSixBoxSimulateImage(const char* imgpath);
+    void saveSixBoxSimulateImages(const char* imgdir);
 
     //void showPanoSimulateWithOpenGL();
 

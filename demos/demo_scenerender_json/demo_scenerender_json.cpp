@@ -7,7 +7,7 @@ void render_images(Ruler::SceneRender& sr, const char* json_path, const char* pi
 
 void main()
 {
-    std::string out_dir = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\out)";
+    std::string out_dir = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\out2)";
     std::string pano_dir = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\pano)";
     std::string picture_dir = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\pics)";
     std::string json_path = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\json\sweeps.json)";
