@@ -75,15 +75,33 @@ void RotatePanoImage(cv::InputArray inarr, cv::InputArray Rarr, cv::OutputArray&
 
 void main()
 {
-	// //切分六面体
-	//char tmp[255];
-	//cv::Mat siximage = cv::imread("..\\..\\..\\datas\\scene02\\六面体.jpg");
+	 //切分六面体
+	char tmp[255];
+	cv::Mat siximage = cv::imread("..\\..\\..\\datas\\scene02\\out\\siximage_4096.jpg");
+	cv::Mat siximage2 = cv::Mat::zeros(siximage.rows / 2, siximage.cols / 2, CV_8UC3);
+
+	// 测试抗锯齿
+	for (int i = 0; i < siximage2.cols; ++i)
+	{
+		for (int j = 0; j < siximage2.rows; ++j)
+		{
+			for (int k = 0; k < siximage2.channels(); ++k)
+			{
+				siximage2.ptr<uchar>(j, i)[k] = (
+					(int)siximage.ptr<uchar>(j * 2, i * 2)[k] +
+					(int)siximage.ptr<uchar>(j * 2 + 1, i * 2)[k] +
+					(int)siximage.ptr<uchar>(j * 2 + 1, i * 2 + 1)[k] +
+					(int)siximage.ptr<uchar>(j * 2, i * 2 + 1)[k]) / 4;
+			}
+		}
+	}
+	cv::imwrite("..\\..\\..\\datas\\scene02\\out\\siximage_2048.jpg", siximage2);
 	//for (int i = 0; i < 6; ++i)
 	//{
-	//	sprintf(tmp, "..\\..\\..\\datas\\scene02\\六面体_%d.jpg", i);
+	//	sprintf(tmp, "..\\..\\..\\datas\\scene02\\out\\六面体_%d.jpg", i);
 	//	cv::imwrite(tmp, siximage.colRange(i*siximage.rows, (i + 1)*siximage.rows));
 	//}
-	//return;
+	return;
 
     cv::Mat Rmat = cv::Mat::eye(3, 3, CV_64F);
     cv::Mat rvec = (cv::Mat_<double>(3, 1) << 0.3, 0.2, 0.5);

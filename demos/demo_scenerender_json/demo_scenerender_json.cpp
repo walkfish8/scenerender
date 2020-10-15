@@ -1,4 +1,4 @@
-#include <iostream>
+#include <iostream>d2368e61-ecf2-2d8f-5fcf-bbcad19abfac
 #include <fstream>
 #include "json\json.h"
 #include "timer.h"
@@ -9,12 +9,12 @@ void render_images(Ruler::SceneRender& sr, const char* json_path, const char* pi
 
 void main()
 {
-	std::string out_dir = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\out)";
-    std::string pano_dir = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\pano)";
-    std::string picture_dir = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\pics)";
-    std::string json_path = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\json\sweeps.json)";
-    std::string scene_json_path = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\json\scene.json)";
-    std::string obj_path = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\model\9d79bec8-b17d-ec82-e9a2-ca0289026378.obj)";
+	std::string out_dir = R"(..\..\..\datas\d2368e61-ecf2-2d8f-5fcf-bbcad19abfac\out)";
+    std::string pano_dir = R"(..\..\..\datas\d2368e61-ecf2-2d8f-5fcf-bbcad19abfac\pano)";
+    std::string picture_dir = R"(..\..\..\datas\d2368e61-ecf2-2d8f-5fcf-bbcad19abfac\pics)";
+    std::string json_path = R"(..\..\..\datas\d2368e61-ecf2-2d8f-5fcf-bbcad19abfac\json\sweeps.json)";
+    std::string scene_json_path = R"(..\..\..\datas\d2368e61-ecf2-2d8f-5fcf-bbcad19abfac\json\scene.json)";
+    std::string obj_path = R"(..\..\..\datas\d2368e61-ecf2-2d8f-5fcf-bbcad19abfac\model\21047246-c1bf-ee80-38c7-5854d64526af.obj)";
 
     std::ifstream ifs;
     ifs.open(json_path);

@@ -42,6 +42,8 @@ Ruler::MeshRaster& Ruler::MeshRaster::instance()
 
 void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, const cv::Mat& P, int image_width, int image_height, MeshRasterResult& result, int label)
 {
+	float color[4] = { 0 };
+
     cv::Mat R = P.rowRange(0, 3).colRange(0, 3);
     cv::Mat tvec = P.rowRange(0, 3).colRange(3, 4);
     cv::Mat C = -R.t()*tvec;
@@ -252,19 +254,51 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
 
 									float alpha0 = pts_x_c - img_pt_x, beta0 = img_pt_x - pts_x_f;
 									float alpha1 = pts_y_c - img_pt_y, beta1 = img_pt_y - pts_y_f;
-									result.simulate.ptr<uchar>(j, i)[n_channel] = alpha1*(alpha0*v00 + beta0*v01) + beta1*(alpha0*v10 + beta0*v11);
+									color[n_channel] = alpha1*(alpha0*v00 + beta0*v01) + beta1*(alpha0*v10 + beta0*v11);
 								}
 							}
 							// 有可能边界还需要处理
-							//else if (pts_x_f >= 0 && pts_y_f >= 0 && pts_x_f < mesh.teximage.cols && pts_y_c < mesh.teximage.rows)
-							//{
-
-							//}
-							//else if (pts_x_c >= 0 && pts_y_c >= 0 && pts_x_c < mesh.teximage.cols && pts_y_c < mesh.teximage.rows)
-							//{
-
-							//}
+							else if (pts_x_f == mesh.teximage.cols - 1 && pts_y_f >= 0 && pts_y_c < mesh.teximage.rows)
+							{
+								for (int n_channel = 0; n_channel < mesh.teximage.channels(); ++n_channel)
+								{
+									auto v00 = mesh.teximage.ptr<uchar>(pts_y_f, pts_x_f)[n_channel];
+									auto v10 = mesh.teximage.ptr<uchar>(pts_y_c, pts_x_f)[n_channel];
+									float alpha1 = pts_y_c - img_pt_y, beta1 = img_pt_y - pts_y_f;
+									color[n_channel] = alpha1*v00 + beta1*v10;
+								}
+							}
+							else if (pts_x_f >= 0 && pts_y_f == mesh.teximage.rows - 1 && pts_x_c < mesh.teximage.cols)
+							{
+								for (int n_channel = 0; n_channel < mesh.teximage.channels(); ++n_channel)
+								{
+									auto v00 = mesh.teximage.ptr<uchar>(pts_y_f, pts_x_f)[n_channel];
+									auto v01 = mesh.teximage.ptr<uchar>(pts_y_f, pts_x_c)[n_channel];
+									float alpha0 = pts_x_c - img_pt_x, beta0 = img_pt_x - pts_x_f;
+									color[n_channel] = alpha0*v00 + beta0*v01;
+								}
+							}
 							else { /* do nothing;*/ }
+
+							if (mesh.teximage.channels() == 4)
+							{
+								float alpha = color[3] / 255.0f;
+								result.simulate.ptr<uchar>(j, i)[0] = result.simulate.ptr<uchar>(j, i)[0] * (1.0f - alpha) + alpha*color[0];
+								result.simulate.ptr<uchar>(j, i)[1] = result.simulate.ptr<uchar>(j, i)[1] * (1.0f - alpha) + alpha*color[1];
+								result.simulate.ptr<uchar>(j, i)[2] = result.simulate.ptr<uchar>(j, i)[2] * (1.0f - alpha) + alpha*color[2];
+							}
+							else if (mesh.teximage.channels() == 1)
+							{
+								result.simulate.ptr<uchar>(j, i)[0] = color[0];
+								result.simulate.ptr<uchar>(j, i)[1] = color[0];
+								result.simulate.ptr<uchar>(j, i)[2] = color[0];
+							}
+							else
+							{
+								result.simulate.ptr<uchar>(j, i)[0] = color[0];
+								result.simulate.ptr<uchar>(j, i)[1] = color[1];
+								result.simulate.ptr<uchar>(j, i)[2] = color[2];
+							}
 						}
                     }
                 }
