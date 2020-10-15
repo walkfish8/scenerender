@@ -85,6 +85,13 @@ private:
 
 }; // class TriMesh
 
+
+SCENERENDER_EXPORT inline void clearImageOnlyOnes();
+
+SCENERENDER_EXPORT inline void setReadImageOnlyOnes(bool _on);
+
+SCENERENDER_EXPORT inline cv::Mat readImageOnlyOnes(const std::string& _file_name);
+
 } // namespace Ruler
 
 #endif // _RULER_SCENERENDER_MESH_H_

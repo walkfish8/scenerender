@@ -145,7 +145,8 @@ bool Ruler::TriMesh::loadOBJ(const std::string& obj_path, bool is_rotate_axis, f
 
 bool Ruler::TriMesh::loadTexture(const std::string& tex_path)
 {
-    teximage = cv::imread(tex_path, cv::IMREAD_UNCHANGED);
+    //teximage = cv::imread(tex_path, cv::IMREAD_UNCHANGED);
+	teximage = readImageOnlyOnes(tex_path);
     return !teximage.empty();
 }
 
@@ -195,4 +196,31 @@ bool Ruler::TriMesh::saveOBJ(const std::string& obj_path)
         << "map_Kd " << texture_path << std::endl;
     ofs2.close();
     return true;
+}
+
+static bool g_read_image_flag = true;
+static std::map<std::string, cv::Mat> g_image_datas;
+
+void Ruler::clearImageOnlyOnes()
+{
+	g_image_datas.clear();
+}
+
+void Ruler::setReadImageOnlyOnes(bool _on)
+{
+	g_read_image_flag = _on;
+}
+
+cv::Mat Ruler::readImageOnlyOnes(const std::string & _file_name)
+{
+	if (g_read_image_flag)
+	{
+		if (g_image_datas.find(_file_name) == g_image_datas.end())
+		{
+			cv::Mat image = cv::imread(_file_name, cv::IMREAD_UNCHANGED);
+			g_image_datas.insert(std::make_pair(_file_name, image));
+		}
+		return g_image_datas.find(_file_name)->second;
+	}
+	return cv::imread(_file_name, cv::IMREAD_UNCHANGED);
 }

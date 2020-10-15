@@ -48,6 +48,9 @@ struct MeshRasterResult
     cv::Mat depth;       // 深度图
     cv::Mat simulate;    // 仿真图
     cv::Mat record;      // 索引图
+
+	cv::Mat map_x;
+	cv::Mat map_y;
 };
 
 class SCENERENDER_EXPORT MeshRaster

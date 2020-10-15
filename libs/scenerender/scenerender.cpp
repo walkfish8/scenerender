@@ -162,6 +162,8 @@ void SceneRender::renderRectangle(const char* imgpath, const CameraD& param, flo
 
     if(mesh.loadTexture(imgpath))
         impl_ptr_->renderMesh(mesh, record_label);
+
+	//impl_ptr_->renderMesh(mesh, record_label);
 }
 
 void SceneRender::savePanoDepthImage(const char* imgpath, float scale)
@@ -207,7 +209,6 @@ void SceneRender::saveSixBoxSimulateImages(const char* imgdir)
     	cv::imwrite(tmp, siximage.colRange(i*siximage.rows, (i + 1)*siximage.rows));
     }
     return;
-    //cv::imwrite(imgpath, impl_ptr_->getSixBoxSimulate());
 }
 
 //void SceneRender::showPanoSimulateWithOpenGL()
@@ -221,7 +222,7 @@ Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int 
     : boxwidth_(boxwidth), panowidth_(panowidth), panoheight_(panoheight), sixbox_(boxwidth, panowidth, panoheight)
 {
     Ruler::Timer::tic();
-    Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_DEBUG);
+	Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_DEBUG);
     Ruler::Logger::info("initialize...\n");
 
     std::vector<cv::Mat> rvecs = {

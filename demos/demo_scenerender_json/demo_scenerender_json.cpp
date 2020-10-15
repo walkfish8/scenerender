@@ -1,18 +1,20 @@
 #include <iostream>
 #include <fstream>
 #include "json\json.h"
+#include "timer.h"
+#include "logger.h"
 #include "scenerender.h"
 
 void render_images(Ruler::SceneRender& sr, const char* json_path, const char* picture_dir, float scale = 1.0f);
 
 void main()
 {
-    std::string out_dir = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\out2)";
-    std::string pano_dir = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\pano)";
-    std::string picture_dir = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\pics)";
-    std::string json_path = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\json\sweeps.json)";
-    std::string scene_json_path = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\json\scene.json)";
-    std::string obj_path = R"(..\..\..\datas\14e9657e-962b-a20c-932d-eedda4abc3b7\model\0b3c3fd5-c759-e6a6-7e3b-5af6b2ea2513.obj)";
+	std::string out_dir = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\out)";
+    std::string pano_dir = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\pano)";
+    std::string picture_dir = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\pics)";
+    std::string json_path = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\json\sweeps.json)";
+    std::string scene_json_path = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\json\scene.json)";
+    std::string obj_path = R"(..\..\..\datas\52622259-a244-e026-8350-a81ee2c557d7\model\9d79bec8-b17d-ec82-e9a2-ca0289026378.obj)";
 
     std::ifstream ifs;
     ifs.open(json_path);
@@ -34,8 +36,8 @@ void main()
 
     char tmp[256];
     Ruler::CameraD cameraparam;
-    Ruler::SceneRender sr(cameraparam, 1024, 3216, 1608);
-    for (int index = 0; index < root.size(); ++index)
+    Ruler::SceneRender sr(cameraparam, 2048, 9000, 4500);
+	for (int index = 0; index < root.size(); ++index)
     {
         cameraparam.SetQuaternionRotation(
             root[index]["rotation"]["x"].asDouble(),
@@ -81,10 +83,10 @@ void main()
         std::cout << root[index]["rotation"]["w"].asDouble() << std::endl;
 
         sprintf_s(tmp, "%s\\%02d.jpg", out_dir.c_str(), index);
-        sr.savePanoSimulateImage(tmp);
+        sr.saveSixBoxSimulateImage(tmp);
 
-        sprintf_s(tmp, "%s\\%02d.png", out_dir.c_str(), index);
-        sr.savePanoDepthImage(tmp, 1000.0f);
+        //sprintf_s(tmp, "%s\\%02d.png", out_dir.c_str(), index);
+        //sr.savePanoDepthImage(tmp, 1000.0f);
     }
 
     return;

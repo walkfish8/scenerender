@@ -56,9 +56,9 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
         result.simulate = cv::Mat::zeros(cv::Size(image_width, image_height), CV_8UC3);
     }
 
-    // 用于映射纹理
-    cv::Mat map_x(cv::Size(image_width, image_height), CV_32F, -1);
-    cv::Mat map_y(cv::Size(image_width, image_height), CV_32F, -1);
+    //// 用于映射纹理
+    //cv::Mat map_x(cv::Size(image_width, image_height), CV_32F, -1);
+    //cv::Mat map_y(cv::Size(image_width, image_height), CV_32F, -1);
 
     double fx = K.at<double>(0, 0);
     double fy = K.at<double>(1, 1);
@@ -227,8 +227,45 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
                             + (mesh.texcoords[uv_id2] - mesh.texcoords[uv_id1])*v + mesh.texcoords[uv_id1];
 
                         // 这个宽高应该需要-1
-                        map_x.at<float>(j, i) = pointUV.x*(mesh.teximage.cols - 1);
-                        map_y.at<float>(j, i) = (1 - pointUV.y)*(mesh.teximage.rows - 1); 
+                        //map_x.at<float>(j, i) = pointUV.x*(mesh.teximage.cols - 1);
+                        //map_y.at<float>(j, i) = (1 - pointUV.y)*(mesh.teximage.rows - 1);
+						float img_pt_x = pointUV.x*(mesh.teximage.cols - 1);
+						float img_pt_y = (1.0f - pointUV.y)*(mesh.teximage.rows - 1);
+
+						// 双线性插值
+						if (!mesh.teximage.empty())
+						{
+							int pts_x_c = static_cast<int>(ceil(img_pt_x));
+							int pts_x_f = pts_x_c - 1;
+							int pts_y_c = static_cast<int>(ceil(img_pt_y));
+							int pts_y_f = pts_y_c - 1;
+
+							// 如果都在有效范围内
+							if (pts_x_f >= 0 && pts_y_f >= 0 && pts_x_c < mesh.teximage.cols && pts_y_c < mesh.teximage.rows)
+							{
+								for (int n_channel = 0; n_channel < mesh.teximage.channels(); ++n_channel)
+								{
+									auto v00 = mesh.teximage.ptr<uchar>(pts_y_f, pts_x_f)[n_channel];
+									auto v01 = mesh.teximage.ptr<uchar>(pts_y_f, pts_x_c)[n_channel];
+									auto v10 = mesh.teximage.ptr<uchar>(pts_y_c, pts_x_f)[n_channel];
+									auto v11 = mesh.teximage.ptr<uchar>(pts_y_c, pts_x_c)[n_channel];
+
+									float alpha0 = pts_x_c - img_pt_x, beta0 = img_pt_x - pts_x_f;
+									float alpha1 = pts_y_c - img_pt_y, beta1 = img_pt_y - pts_y_f;
+									result.simulate.ptr<uchar>(j, i)[n_channel] = alpha1*(alpha0*v00 + beta0*v01) + beta1*(alpha0*v10 + beta0*v11);
+								}
+							}
+							// 有可能边界还需要处理
+							//else if (pts_x_f >= 0 && pts_y_f >= 0 && pts_x_f < mesh.teximage.cols && pts_y_c < mesh.teximage.rows)
+							//{
+
+							//}
+							//else if (pts_x_c >= 0 && pts_y_c >= 0 && pts_x_c < mesh.teximage.cols && pts_y_c < mesh.teximage.rows)
+							//{
+
+							//}
+							else { /* do nothing;*/ }
+						}
                     }
                 }
 
@@ -236,78 +273,82 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
         }
     }
 
-    if (!mesh.teximage.empty())
-    {
-        if (is_overlapped)
-        {
-            cv::Mat remapimage;
-            cv::remap(mesh.teximage, remapimage, map_x, map_y, cv::INTER_CUBIC);
-            if (mesh.teximage.channels() == 3)
-            {
-                for (int i = 0; i < image_height; i++)
-                {
-                    const auto& map_x_ptr = map_x.ptr<float>(i);
-                    const auto& map_y_ptr = map_y.ptr<float>(i);
-                    const auto& remapimage_ptr = remapimage.ptr<cv::Vec3b>(i);
-                    const auto& simulate_ptr = result.simulate.ptr<cv::Vec3b>(i);
-                    for (int j = 0; j < image_width; j++)
-                    {
-                        if (map_x_ptr[j] >= 0 && map_y_ptr[j] >= 0 && map_x_ptr[j] < mesh.teximage.cols && map_y_ptr[j] < mesh.teximage.rows)
-                        {
-                            simulate_ptr[j] = remapimage_ptr[j];
-                        }
-                    }
-                }
-            }
-            else if (mesh.teximage.channels() == 4)
-            {
-                for (int i = 0; i < image_height; i++)
-                {
-                    const auto& map_x_ptr = map_x.ptr<float>(i);
-                    const auto& map_y_ptr = map_y.ptr<float>(i);
-                    const auto& remapimage_ptr = remapimage.ptr<cv::Vec4b>(i);
-                    const auto& simulate_ptr = result.simulate.ptr<cv::Vec3b>(i);
-                    for (int j = 0; j < image_width; j++)
-                    {
-                        if (map_x_ptr[j] >= 0 && map_y_ptr[j] >= 0 && map_x_ptr[j] < mesh.teximage.cols && map_y_ptr[j] < mesh.teximage.rows)
-                        {
-                            float alpha = remapimage_ptr[j][3]/255.0f;
-                            simulate_ptr[j][0] = simulate_ptr[j][0] * (1.0f - alpha) + alpha*remapimage_ptr[j][0];
-                            simulate_ptr[j][1] = simulate_ptr[j][1] * (1.0f - alpha) + alpha*remapimage_ptr[j][1];
-                            simulate_ptr[j][2] = simulate_ptr[j][2] * (1.0f - alpha) + alpha*remapimage_ptr[j][2];
-                        }
-                    }
-                }
-            }
-            else if (mesh.teximage.channels() == 1)
-            {
-                for (int i = 0; i < image_height; i++)
-                {
-                    const auto& map_x_ptr = map_x.ptr<float>(i);
-                    const auto& map_y_ptr = map_y.ptr<float>(i);
-                    const auto& remapimage_ptr = remapimage.ptr<uchar>(i);
-                    const auto& simulate_ptr = result.simulate.ptr<cv::Vec3b>(i);
-                    for (int j = 0; j < image_width; j++)
-                    {
-                        if (map_x_ptr[j] >= 0 && map_y_ptr[j] >= 0 && map_x_ptr[j] < mesh.teximage.cols && map_y_ptr[j] < mesh.teximage.rows)
-                        {
-                            simulate_ptr[j][0] = remapimage_ptr[j];
-                            simulate_ptr[j][1] = remapimage_ptr[j];
-                            simulate_ptr[j][2] = remapimage_ptr[j];
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Ruler::Logger::error("Texture is Null!\n");
-            }
-        }
-        else
-        {
-            cv::remap(mesh.teximage, result.simulate, map_x, map_y, cv::INTER_CUBIC);
-        }
-    }
+//    if (false)
+//	//if (!mesh.teximage.empty())
+//    {
+//        if (is_overlapped)
+//        {
+//            cv::Mat remapimage;
+//            cv::remap(mesh.teximage, remapimage, map_x, map_y, cv::INTER_LINEAR);
+//            if (mesh.teximage.channels() == 3)
+//            {
+//#pragma omp parallel for
+//                for (int i = 0; i < image_height; i++)
+//                {
+//                    const auto& map_x_ptr = map_x.ptr<float>(i);
+//                    const auto& map_y_ptr = map_y.ptr<float>(i);
+//                    const auto& remapimage_ptr = remapimage.ptr<cv::Vec3b>(i);
+//                    const auto& simulate_ptr = result.simulate.ptr<cv::Vec3b>(i);
+//                    for (int j = 0; j < image_width; j++)
+//                    {
+//                        if (map_x_ptr[j] >= 0 && map_y_ptr[j] >= 0 && map_x_ptr[j] < mesh.teximage.cols && map_y_ptr[j] < mesh.teximage.rows)
+//                        {
+//                            simulate_ptr[j] = remapimage_ptr[j];
+//                        }
+//                    }
+//                }
+//            }
+//            else if (mesh.teximage.channels() == 4)
+//            {
+//#pragma omp parallel for
+//                for (int i = 0; i < image_height; i++)
+//                {
+//                    const auto& map_x_ptr = map_x.ptr<float>(i);
+//                    const auto& map_y_ptr = map_y.ptr<float>(i);
+//                    const auto& remapimage_ptr = remapimage.ptr<cv::Vec4b>(i);
+//                    const auto& simulate_ptr = result.simulate.ptr<cv::Vec3b>(i);
+//                    for (int j = 0; j < image_width; j++)
+//                    {
+//                        if (map_x_ptr[j] >= 0 && map_y_ptr[j] >= 0 && map_x_ptr[j] < mesh.teximage.cols && map_y_ptr[j] < mesh.teximage.rows)
+//                        {
+//                            float alpha = remapimage_ptr[j][3]/255.0f;
+//                            simulate_ptr[j][0] = simulate_ptr[j][0] * (1.0f - alpha) + alpha*remapimage_ptr[j][0];
+//                            simulate_ptr[j][1] = simulate_ptr[j][1] * (1.0f - alpha) + alpha*remapimage_ptr[j][1];
+//                            simulate_ptr[j][2] = simulate_ptr[j][2] * (1.0f - alpha) + alpha*remapimage_ptr[j][2];
+//                        }
+//                    }
+//                }
+//            }
+//            else if (mesh.teximage.channels() == 1)
+//            {
+//#pragma omp parallel for
+//                for (int i = 0; i < image_height; i++)
+//                {
+//                    const auto& map_x_ptr = map_x.ptr<float>(i);
+//                    const auto& map_y_ptr = map_y.ptr<float>(i);
+//                    const auto& remapimage_ptr = remapimage.ptr<uchar>(i);
+//                    const auto& simulate_ptr = result.simulate.ptr<cv::Vec3b>(i);
+//                    for (int j = 0; j < image_width; j++)
+//                    {
+//                        if (map_x_ptr[j] >= 0 && map_y_ptr[j] >= 0 && map_x_ptr[j] < mesh.teximage.cols && map_y_ptr[j] < mesh.teximage.rows)
+//                        {
+//                            simulate_ptr[j][0] = remapimage_ptr[j];
+//                            simulate_ptr[j][1] = remapimage_ptr[j];
+//                            simulate_ptr[j][2] = remapimage_ptr[j];
+//                        }
+//                    }
+//                }
+//            }
+//            else
+//            {
+//                Ruler::Logger::error("Texture is Null!\n");
+//            }
+//        }
+//        else
+//        {
+//            cv::remap(mesh.teximage, result.simulate, map_x, map_y, cv::INTER_LINEAR);
+//        }
+//    }
 }
 
 Ruler::MeshRasterResult Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, const cv::Mat& P, int image_width, int image_height)

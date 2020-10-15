@@ -61,8 +61,6 @@ public:
     void saveSixBoxSimulateImage(const char* imgpath);
     void saveSixBoxSimulateImages(const char* imgdir);
 
-    //void showPanoSimulateWithOpenGL();
-
 private:
     SceneRenderImpl* const impl_ptr_;
 };
