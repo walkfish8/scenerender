@@ -38,7 +38,7 @@ class SceneRenderImpl;
 class SCENERENDER_EXPORT SceneRender
 {
 public:
-    SceneRender(const CameraD& param, int boxwidth, int panowidth, int panoheight);
+    SceneRender(const CameraD& param, int boxwidth, int panowidth, int panoheight, int ssaa = 1);
     ~SceneRender();
 
     void clearDepthAndImage();

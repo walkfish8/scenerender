@@ -38,7 +38,7 @@ namespace Ruler
 class SceneRenderImpl
 {
 public:
-    SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight);
+    SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight, int ssaa = 1);
     ~SceneRenderImpl();
 
     void clearDepthAndImage();
@@ -48,6 +48,7 @@ public:
 
     void renderSix(const cv::Mat& siximage);
 	void renderSix(const cv::Mat siximage[6]);
+	void renderSingleBox(const cv::Mat& box_image, int box_ind);
     void renderPano(const cv::Mat& panoimage);
     void renderMesh(const TriMesh& mesh, int recordLabel = 0);
 
@@ -60,6 +61,8 @@ public:
     cv::Mat getSixBoxSimulate();
 
 private:
+	int ssaa_;
+
     int boxwidth_, panowidth_, panoheight_;
     MeshRasterResult result_array_[6];
 
@@ -71,8 +74,8 @@ private:
 };
 
 
-SceneRender::SceneRender(const CameraD& param, int boxwidth, int panowidth, int panoheight)
-    : impl_ptr_(new SceneRenderImpl(param, boxwidth, panowidth, panoheight))
+SceneRender::SceneRender(const CameraD& param, int boxwidth, int panowidth, int panoheight, int ssaa)
+    : impl_ptr_(new SceneRenderImpl(param, boxwidth, panowidth, panoheight, ssaa))
 {}
 
 SceneRender::~SceneRender() { delete impl_ptr_; }
@@ -218,11 +221,15 @@ void SceneRender::saveSixBoxSimulateImages(const char* imgdir)
 
 } // namespace Ruler
 
-Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight) 
-    : boxwidth_(boxwidth), panowidth_(panowidth), panoheight_(panoheight), sixbox_(boxwidth, panowidth, panoheight)
+Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int panowidth, int panoheight, int ssaa)
+    : ssaa_(ssaa)
+	, boxwidth_(boxwidth)
+	, panowidth_(panowidth)
+	, panoheight_(panoheight)
+	, sixbox_(boxwidth, panowidth, panoheight)
 {
     Ruler::Timer::tic();
-	Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_DEBUG);
+	Ruler::Logger::setLevel(Ruler::SCENERENDER_LOG_NONE);
     Ruler::Logger::info("initialize...\n");
 
     std::vector<cv::Mat> rvecs = {
@@ -237,12 +244,12 @@ Ruler::SceneRenderImpl::SceneRenderImpl(const CameraD& param, int boxwidth, int 
         cv::Rodrigues(rvecs[k], R0); 
         rotate_mats_[k] = Rr*R0*Ro;
 
-        result_array_[k].depth = cv::Mat::zeros(boxwidth, boxwidth, CV_32F);
-        result_array_[k].record = -cv::Mat::ones(boxwidth, boxwidth, CV_32S);
-        result_array_[k].simulate = cv::Mat::zeros(boxwidth, boxwidth, CV_8UC3);
+        result_array_[k].depth = cv::Mat::zeros(boxwidth*ssaa_, boxwidth*ssaa_, CV_32F);
+        result_array_[k].record = -cv::Mat::ones(boxwidth*ssaa_, boxwidth*ssaa_, CV_32S);
+        result_array_[k].simulate = cv::Mat::zeros(boxwidth*ssaa_, boxwidth*ssaa_, CV_8UC3);
     }
 
-    float half_boxwidth = (boxwidth - 1.0f) / 2.0f;
+	float half_boxwidth = (boxwidth*ssaa_ - 1.0f) / 2.0f;
     K_ = (cv::Mat_<double>(3, 3) << half_boxwidth, 0, half_boxwidth, 0, half_boxwidth, half_boxwidth, 0, 0, 1);
 
     setCameraParam(param);
@@ -256,9 +263,9 @@ void Ruler::SceneRenderImpl::clearDepthAndImage()
 {
     for (int k = 0; k < 6; k++)
     {
-        result_array_[k].depth = cv::Mat::zeros(boxwidth_, boxwidth_, CV_32F);
-        result_array_[k].record = -cv::Mat::ones(boxwidth_, boxwidth_, CV_32S);
-        result_array_[k].simulate = cv::Mat::zeros(boxwidth_, boxwidth_, CV_8UC3);
+		result_array_[k].depth = cv::Mat::zeros(boxwidth_*ssaa_, boxwidth_*ssaa_, CV_32F);
+		result_array_[k].record = -cv::Mat::ones(boxwidth_*ssaa_, boxwidth_*ssaa_, CV_32S);
+		result_array_[k].simulate = cv::Mat::zeros(boxwidth_*ssaa_, boxwidth_*ssaa_, CV_8UC3);
     }
 }
 
@@ -318,10 +325,34 @@ cv::Mat Ruler::SceneRenderImpl::getSixBoxRecord()
 
 cv::Mat Ruler::SceneRenderImpl::getSixBoxSimulate()
 {
+	cv::Mat subimage(boxwidth_, boxwidth_, CV_8UC3);
     cv::Mat siximage(boxwidth_, 6 * boxwidth_, CV_8UC3);
-    for (int i = 0; i < 6; i++)
+
+	float ssaa_inv_2 = 1.0 / ssaa_ / ssaa_;
+    for (int k = 0; k < 6; k++)
     {
-        result_array_[i].simulate.convertTo(siximage.colRange(i*boxwidth_, (i + 1)*boxwidth_), CV_8UC3);
+		for (int i = 0; i < boxwidth_; i++)
+		{
+			for (int j = 0; j < boxwidth_; j++)
+			{
+				int r(0), g(0), b(0);
+				for (int x = 0; x < ssaa_; ++x)
+				{
+					for (int y = 0; y < ssaa_; ++y)
+					{
+						auto simulate_ptr = result_array_[k].simulate.ptr<uchar>(i*ssaa_ + x, j*ssaa_ + y);
+						b += simulate_ptr[0];
+						g += simulate_ptr[1];
+						r += simulate_ptr[2];
+					}
+				}
+				auto subimage_ptr = subimage.ptr<uchar>(i, j);
+				subimage_ptr[0] = b * ssaa_inv_2;
+				subimage_ptr[1] = g * ssaa_inv_2;
+				subimage_ptr[2] = r * ssaa_inv_2;
+			}
+		}
+		subimage.convertTo(siximage.colRange(k*boxwidth_, (k + 1)*boxwidth_), CV_8UC3);
     }
     return std::move(siximage);
 }
@@ -342,7 +373,7 @@ void Ruler::SceneRenderImpl::renderMesh(const Ruler::TriMesh& mesh, int label)
         Rc.copyTo(P.rowRange(0, 3).colRange(0, 3));
         Tc.copyTo(P.rowRange(0, 3).colRange(3, 4));
 
-        Ruler::MeshRaster::raster(mesh, K_, P, boxwidth_, boxwidth_, result_array_[k], label);
+		Ruler::MeshRaster::raster(mesh, K_, P, boxwidth_*ssaa_, boxwidth_*ssaa_, result_array_[k], label);
     }
     Ruler::Logger::info("renderMesh finished..., elapsed %fs\n", Ruler::Timer::toc());
 }
@@ -350,45 +381,65 @@ void Ruler::SceneRenderImpl::renderMesh(const Ruler::TriMesh& mesh, int label)
 void Ruler::SceneRenderImpl::renderPano(const cv::Mat& panoimage)
 {
     assert(panoimage.cols == panowidth_ && panoimage.rows == panoheight_);
-    cv::Mat siximage = sixbox_.convertPanoramaToSixBox(panoimage);
+    //cv::Mat siximage = sixbox_.convertPanoramaToSixBox(panoimage);
+	renderSix(sixbox_.convertPanoramaToSixBox(panoimage));
+//#pragma omp parallel for
+//    for (int k = 0; k < 6; k++)
+//    {
+//        cv::Mat subimage = siximage.colRange(k*boxwidth_, (k + 1)*boxwidth_);
+//		for (int i = 0; i < boxwidth_*ssaa_; i++)
+//        {
+//			const auto& subimage_ptr = subimage.ptr<cv::Vec3b>(i / ssaa_);
+//
+//            const auto& record_ptr = result_array_[k].record.ptr<int>(i);
+//            const auto& simulate_ptr = result_array_[k].simulate.ptr<cv::Vec3b>(i);
+//            for (int j = 0; j < boxwidth_*ssaa_; j++)
+//            {
+//                if (record_ptr[j] <= 0)
+//                    simulate_ptr[j] = subimage_ptr[j];
+//            }
+//        }
+//    }
+}
 
-#pragma omp parallel for
-    for (int k = 0; k < 6; k++)
-    {
-        cv::Mat subimage = siximage.colRange(k*boxwidth_, (k + 1)*boxwidth_);
-        for (int i = 0; i < boxwidth_; i++)
-        {
-            const auto& subimage_ptr = subimage.ptr<cv::Vec3b>(i);
-            const auto& record_ptr = result_array_[k].record.ptr<int>(i);
-            const auto& simulate_ptr = result_array_[k].simulate.ptr<cv::Vec3b>(i);
-            for (int j = 0; j < boxwidth_; j++)
-            {
-                if (record_ptr[j] <= 0)
-                    simulate_ptr[j] = subimage_ptr[j];
-            }
-        }
-    }
+void Ruler::SceneRenderImpl::renderSingleBox(const cv::Mat& box_image, int box_ind)
+{
+	assert(box_image.cols == box_image.rows);
+
+	cv::Mat subimage;
+	if (box_image.cols != boxwidth_ || box_image.rows != boxwidth_)
+	{
+		cv::resize(box_image, subimage, cv::Size(boxwidth_, boxwidth_));
+	}
+	else
+	{
+		subimage = box_image;
+	}
+
+	for (int i = 0; i < boxwidth_; i++)
+	{
+		for (int j = 0; j < boxwidth_; j++)
+		{
+			for (int x = 0; x < ssaa_; ++x)
+			{
+				for (int y = 0; y < ssaa_; ++y)
+				{
+					if (result_array_[box_ind].record.ptr<int>(i*ssaa_ + x)[j*ssaa_ + y] <= 0)
+						result_array_[box_ind].simulate.ptr<cv::Vec3b>(i*ssaa_ + x)[j*ssaa_ + y] = subimage.ptr<cv::Vec3b>(i)[j];
+				}
+			}
+		}
+	}
 }
 
 void Ruler::SceneRenderImpl::renderSix(const cv::Mat& siximage)
 {
-    assert(siximage.cols == 6 * boxwidth_ && siximage.rows == boxwidth_);
+    assert(siximage.cols == 6 * siximage.rows);
 
 #pragma omp parallel for
     for (int k = 0; k < 6; k++)
     {
-        cv::Mat subimage = siximage.colRange(k*boxwidth_, (k + 1)*boxwidth_);
-        for (int i = 0; i < boxwidth_; i++)
-        {
-            const auto& subimage_ptr = subimage.ptr<cv::Vec3b>(i);
-            const auto& record_ptr = result_array_[k].record.ptr<int>(i);
-            const auto& simulate_ptr = result_array_[k].simulate.ptr<cv::Vec3b>(i);
-            for (int j = 0; j < boxwidth_; j++)
-            {
-                if (record_ptr[j] <= 0)
-                    simulate_ptr[j] = subimage_ptr[j];
-            }
-        }
+		renderSingleBox(siximage.colRange(k*siximage.rows, (k + 1)*siximage.rows), k);
     }
 }
 
@@ -397,24 +448,25 @@ void Ruler::SceneRenderImpl::renderSix(const cv::Mat siximage[6])
 #pragma omp parallel for
 	for (int k = 0; k < 6; k++)
 	{
-		if (siximage[k].cols == boxwidth_ && siximage[k].rows == boxwidth_)
-		{
-			const cv::Mat& subimage = siximage[k];
-			for (int i = 0; i < boxwidth_; i++)
-			{
-				const auto& subimage_ptr = subimage.ptr<cv::Vec3b>(i);
-				const auto& record_ptr = result_array_[k].record.ptr<int>(i);
-				const auto& simulate_ptr = result_array_[k].simulate.ptr<cv::Vec3b>(i);
-				for (int j = 0; j < boxwidth_; j++)
-				{
-					if (record_ptr[j] <= 0)
-						simulate_ptr[j] = subimage_ptr[j];
-				}
-			}
-		}
-		else
-		{
-			Ruler::Logger::error("size of image for index %d wrong!\n", k);
-		}
+		renderSingleBox(siximage[k], k);
+		//cv::Mat subimage = siximage[k];
+		//if (siximage[k].cols != boxwidth_ || siximage[k].rows != boxwidth_)
+		//{
+		//	Ruler::Logger::error("size of image for index %d wrong!\n", k);
+		//	//subimage.resize(boxwidth_, boxwidth_);
+		//	cv::resize(siximage[k], subimage, cv::Size(boxwidth_, boxwidth_));
+		//}
+
+		//for (int i = 0; i < boxwidth_; i++)
+		//{
+		//	const auto& subimage_ptr = subimage.ptr<cv::Vec3b>(i);
+		//	const auto& record_ptr = result_array_[k].record.ptr<int>(i);
+		//	const auto& simulate_ptr = result_array_[k].simulate.ptr<cv::Vec3b>(i);
+		//	for (int j = 0; j < boxwidth_; j++)
+		//	{
+		//		if (record_ptr[j] <= 0)
+		//			simulate_ptr[j] = subimage_ptr[j];
+		//	}
+		//}
 	}
 }

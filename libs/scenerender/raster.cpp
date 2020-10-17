@@ -42,8 +42,6 @@ Ruler::MeshRaster& Ruler::MeshRaster::instance()
 
 void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, const cv::Mat& P, int image_width, int image_height, MeshRasterResult& result, int label)
 {
-	float color[4] = { 0 };
-
     cv::Mat R = P.rowRange(0, 3).colRange(0, 3);
     cv::Mat tvec = P.rowRange(0, 3).colRange(3, 4);
     cv::Mat C = -R.t()*tvec;
@@ -96,6 +94,10 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
         image_points[i].y = y*fy / z + cy;
         image_points_flags[i] = z > 0;
     }
+
+	// ¡Ÿ ±±‰¡ø
+	float alpha_t = .0f;
+	float color[4] = { .0f };
 
 #pragma omp parallel for
     for (int face_index = 0; face_index < mesh.faces.size(); face_index++)
@@ -280,25 +282,48 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
 							}
 							else { /* do nothing;*/ }
 
-							if (mesh.teximage.channels() == 4)
+
+							switch (mesh.teximage.channels())
 							{
-								float alpha = color[3] / 255.0f;
-								result.simulate.ptr<uchar>(j, i)[0] = result.simulate.ptr<uchar>(j, i)[0] * (1.0f - alpha) + alpha*color[0];
-								result.simulate.ptr<uchar>(j, i)[1] = result.simulate.ptr<uchar>(j, i)[1] * (1.0f - alpha) + alpha*color[1];
-								result.simulate.ptr<uchar>(j, i)[2] = result.simulate.ptr<uchar>(j, i)[2] * (1.0f - alpha) + alpha*color[2];
-							}
-							else if (mesh.teximage.channels() == 1)
-							{
-								result.simulate.ptr<uchar>(j, i)[0] = color[0];
-								result.simulate.ptr<uchar>(j, i)[1] = color[0];
-								result.simulate.ptr<uchar>(j, i)[2] = color[0];
-							}
-							else
-							{
+							case 4:
+								alpha_t = color[3] / 255.0f;
+								result.simulate.ptr<uchar>(j, i)[0] = result.simulate.ptr<uchar>(j, i)[0] * (1.0f - alpha_t) + alpha_t*color[0];
+								result.simulate.ptr<uchar>(j, i)[1] = result.simulate.ptr<uchar>(j, i)[1] * (1.0f - alpha_t) + alpha_t*color[1];
+								result.simulate.ptr<uchar>(j, i)[2] = result.simulate.ptr<uchar>(j, i)[2] * (1.0f - alpha_t) + alpha_t*color[2];
+								break;
+							case 3:
 								result.simulate.ptr<uchar>(j, i)[0] = color[0];
 								result.simulate.ptr<uchar>(j, i)[1] = color[1];
 								result.simulate.ptr<uchar>(j, i)[2] = color[2];
+								break;
+							case 1:
+								result.simulate.ptr<uchar>(j, i)[0] = color[0];
+								result.simulate.ptr<uchar>(j, i)[1] = color[0];
+								result.simulate.ptr<uchar>(j, i)[2] = color[0];
+								break;
+							default:
+								break;
 							}
+							//if (mesh.teximage.channels() == 4)
+							//{
+							//	float alpha = color[3] / 255.0f;
+							//	result.simulate.ptr<uchar>(j, i)[0] = result.simulate.ptr<uchar>(j, i)[0] * (1.0f - alpha) + alpha*color[0];
+							//	result.simulate.ptr<uchar>(j, i)[1] = result.simulate.ptr<uchar>(j, i)[1] * (1.0f - alpha) + alpha*color[1];
+							//	result.simulate.ptr<uchar>(j, i)[2] = result.simulate.ptr<uchar>(j, i)[2] * (1.0f - alpha) + alpha*color[2];
+							//}
+							//else if (mesh.teximage.channels() == 3)
+							//{
+							//	result.simulate.ptr<uchar>(j, i)[0] = color[0];
+							//	result.simulate.ptr<uchar>(j, i)[1] = color[1];
+							//	result.simulate.ptr<uchar>(j, i)[2] = color[2];
+							//}
+							//else if (mesh.teximage.channels() == 1)
+							//{
+							//	result.simulate.ptr<uchar>(j, i)[0] = color[0];
+							//	result.simulate.ptr<uchar>(j, i)[1] = color[0];
+							//	result.simulate.ptr<uchar>(j, i)[2] = color[0];
+							//}
+							//else { /* do nothing;*/ }
 						}
                     }
                 }
