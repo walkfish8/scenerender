@@ -5,10 +5,14 @@
 #include "logger.h"
 #include "scenerender.h"
 
+#include <chrono>
+
 void render_images(Ruler::SceneRender& sr, const char* json_path, const char* picture_dir, float scale = 1.0f);
 
 void main()
 {
+    auto start = std::chrono::system_clock::now();
+
 	std::string out_dir = R"(..\..\..\datas\d2368e61-ecf2-2d8f-5fcf-bbcad19abfac\out)";
     std::string pano_dir = R"(..\..\..\datas\d2368e61-ecf2-2d8f-5fcf-bbcad19abfac\pano)";
     std::string picture_dir = R"(..\..\..\datas\d2368e61-ecf2-2d8f-5fcf-bbcad19abfac\pics)";
@@ -90,6 +94,9 @@ void main()
         //sr.savePanoDepthImage(tmp, 1000.0f);
     }
 
+    auto end = std::chrono::system_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "Spent" << double(duration.count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den << " seconds." << std::endl;
     return;
 }
 
