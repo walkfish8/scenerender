@@ -416,20 +416,50 @@ void Ruler::SceneRenderImpl::renderSingleBox(const cv::Mat& box_image, int box_i
 		subimage = box_image;
 	}
 
-	for (int i = 0; i < boxwidth_; i++)
+	if (box_image.channels() == 3)
 	{
-		for (int j = 0; j < boxwidth_; j++)
+		for (int i = 0; i < boxwidth_; i++)
 		{
-			for (int x = 0; x < ssaa_; ++x)
+			for (int j = 0; j < boxwidth_; j++)
 			{
-				for (int y = 0; y < ssaa_; ++y)
+				for (int x = 0; x < ssaa_; ++x)
 				{
-					if (result_array_[box_ind].record.ptr<int>(i*ssaa_ + x)[j*ssaa_ + y] <= 0)
-						result_array_[box_ind].simulate.ptr<cv::Vec3b>(i*ssaa_ + x)[j*ssaa_ + y] = subimage.ptr<cv::Vec3b>(i)[j];
+					for (int y = 0; y < ssaa_; ++y)
+					{
+						if (result_array_[box_ind].record.ptr<int>(i*ssaa_ + x)[j*ssaa_ + y] <= 0)
+							result_array_[box_ind].simulate.ptr<cv::Vec3b>(i*ssaa_ + x)[j*ssaa_ + y] = subimage.ptr<cv::Vec3b>(i)[j];
+					}
 				}
 			}
 		}
 	}
+	else if (box_image.channels() == 4)
+	{
+		float alpha = .0f, alpha_inv = .0f;
+		for (int i = 0; i < boxwidth_; i++)
+		{
+			for (int j = 0; j < boxwidth_; j++)
+			{
+				for (int x = 0; x < ssaa_; ++x)
+				{
+					for (int y = 0; y < ssaa_; ++y)
+					{
+						if (result_array_[box_ind].record.ptr<int>(i*ssaa_ + x)[j*ssaa_ + y] <= 0)
+						{
+							const auto& rgba = subimage.ptr<cv::Vec4b>(i)[j];
+							auto& rgb = result_array_[box_ind].simulate.ptr<cv::Vec3b>(i*ssaa_ + x)[j*ssaa_ + y];
+							alpha = rgba[3] / 255.0f;
+							alpha_inv = 1.0 - alpha;
+							rgb[0] = rgba[0] * alpha + alpha_inv*rgb[0];
+							rgb[1] = rgba[1] * alpha + alpha_inv*rgb[1];
+							rgb[2] = rgba[2] * alpha + alpha_inv*rgb[2];
+						}
+					}
+				}
+			}
+		}
+	}
+	else { /*do nothing*/ }
 }
 
 void Ruler::SceneRenderImpl::renderSix(const cv::Mat& siximage)
