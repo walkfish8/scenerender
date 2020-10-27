@@ -32,6 +32,7 @@
 #include <vector>
 #include <string>
 
+#include "camera.h"
 #include "opencv2/opencv.hpp"
 
 namespace Ruler
@@ -63,6 +64,9 @@ public:
     bool loadOBJ(const std::string& obj_path, bool is_rotate_axis = false, float scale = 1.0f);
     bool saveOBJ(const std::string& obj_path);
     bool loadTexture(const std::string& tex_path);
+
+	void rotate_axis();
+	void transfrom(const CameraD& param);
 
     /*
     列出顶点对应的三角面索引

@@ -54,6 +54,54 @@ void Ruler::TriMesh::listIncidenteFaces()
             vertex_faces_[faces[i].vertices[j]].push_back(i);
 }
 
+void Ruler::TriMesh::rotate_axis()
+{
+	for (int i = 0; i < vertices.size(); ++i)
+	{
+		cv::Point3f& point = vertices[i];
+		point = cv::Point3f{ point.x, -point.z, point.y };
+	}
+
+	for (int i = 0; i < normals.size(); ++i)
+	{
+		cv::Point3f& normal = normals[i];
+		normal = cv::Point3f{ normal.x, -normal.z, normal.y };
+	}
+}
+
+void Ruler::TriMesh::transfrom(const CameraD& param)
+{
+	float a0 = param.m[0][0]; float a1 = param.m[0][1]; float a2 = param.m[0][2];
+	float b0 = param.m[1][0]; float b1 = param.m[1][1]; float b2 = param.m[1][2];
+	float c0 = param.m[2][0]; float c1 = param.m[2][1]; float c2 = param.m[2][2];
+	float tx = param.t[0]; float ty = param.t[1]; float tz = param.t[2];
+
+	float x, y, z;
+	for (int i = 0; i < vertices.size(); ++i)
+	{
+		cv::Point3f& point = vertices[i];
+		x = a0*point.x + a1*point.y + a2*point.z + tx;
+		y = b0*point.x + b1*point.y + b2*point.z + ty;
+		z = c0*point.x + c1*point.y + c2*point.z + tz;
+
+		point.x = x;
+		point.y = y;
+		point.z = z;
+	}
+
+	for (int i = 0; i < normals.size(); ++i)
+	{
+		cv::Point3f& normal = normals[i];
+		x = a0*normal.x + a1*normal.y + a2*normal.z;
+		y = b0*normal.x + b1*normal.y + b2*normal.z;
+		z = c0*normal.x + c1*normal.y + c2*normal.z;
+
+		normal.x = x;
+		normal.y = y;
+		normal.z = z;
+	}
+}
+
 void Ruler::TriMesh::getAdjacencyFaces(Index face_index,
                                        std::vector<Index>& adjacency_faces)
 {

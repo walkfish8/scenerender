@@ -117,6 +117,17 @@ void SceneRender::renderTrimesh(const char* objpath, const char* imgpath, int re
     impl_ptr_->renderMesh(mesh, record_label);
 }
 
+void SceneRender::renderTrimesh(const char* objpath, const char* imgpath, const CameraD& param, int record_label, bool is_rotate_axis, float scale)
+{
+	Ruler::TriMesh mesh;
+	mesh.loadOBJ(objpath, false, scale);
+	mesh.loadTexture(imgpath);
+	mesh.transfrom(param);
+	if (is_rotate_axis)
+		mesh.rotate_axis();
+	impl_ptr_->renderMesh(mesh, record_label);
+}
+
 void SceneRender::renderRectangle(const char* imgpath, const CameraD& param, float rectw, float recth, int record_label, bool is_rotate_axis)
 {
     Ruler::TriMesh mesh;
