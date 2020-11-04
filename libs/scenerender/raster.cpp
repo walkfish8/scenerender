@@ -222,7 +222,7 @@ void Ruler::MeshRaster::raster(const Ruler::TriMesh& mesh, const cv::Mat& K, con
                 if (u >= 0 && v >= 0 && u + v <= 1)
                 {
                     double d = c0*pt.x + c1*pt.y + c2*pt.z + tz;
-                    if (d > 0 && (d < result.depth.at<float>(j, i) || result.depth.at<float>(j, i) <= 0))
+                    if (d > 0 && (d < result.depth.at<float>(j, i) || result.depth.at<float>(j, i) <= 0 || std::abs(d - result.depth.at<float>(j, i)) < 1e-4))
                     {
                         result.depth.at<float>(j, i) = d;
                         result.record.at<int>(j, i) = label == -1 ? face_index : label;
